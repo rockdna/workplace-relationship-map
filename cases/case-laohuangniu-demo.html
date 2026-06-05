@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>职场关系地图 v2.2 - 老黄牛困境</title>
+<style>
+  :root {
+    --bg: #FAFBFC;
+    --card: #FFFFFF;
+    --border: #E8ECF0;
+    --text: #1A1D21;
+    --text-secondary: #5A6270;
+    --accent: #3B82F6;
+    --accent-light: #EFF6FF;
+    --danger: #EF4444;
+    --danger-light: #FEF2F2;
+    --success: #10B981;
+    --success-light: #ECFDF5;
+    --warning: #F59E0B;
+    --warning-light: #FFFBEB;
+    --purple: #8B5CF6;
+    --purple-light: #F5F3FF;
+    --gold: #D97706;
+    --gold-light: #FEF3C7;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', 'Helvetica Neue', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  .container { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+  .subtitle { color: var(--text-secondary); font-size: 15px; margin-bottom: 32px; }
+  .version-tag { display: inline-block; background: var(--gold-light); color: var(--gold); font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; margin-left: 8px; vertical-align: middle; }
+  .wukong-quote { background: linear-gradient(135deg, #1F2937 0%, #374151 100%); color: #F9FAFB; padding: 20px 24px; border-radius: 12px; margin-bottom: 24px; position: relative; overflow: hidden; }
+  .wukong-quote::before { content: '⛰'; position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 64px; opacity: 0.15; }
+  .wukong-quote-label { font-size: 11px; font-weight: 600; color: var(--gold); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .wukong-quote-text { font-size: 16px; font-style: italic; line-height: 1.7; }
+  .wukong-quote-source { font-size: 12px; color: #9CA3AF; margin-top: 8px; }
+  .situation { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+  .situation-label { font-size: 12px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .situation-text { font-size: 16px; font-weight: 500; }
+  .misjudgment { margin-top: 16px; padding: 16px; background: var(--warning-light); border-radius: 8px; border-left: 3px solid var(--warning); }
+  .misjudgment-label { font-size: 12px; font-weight: 600; color: var(--warning); margin-bottom: 4px; }
+  .misjudgment-text { font-size: 14px; color: #92400E; }
+  .cultivation-path { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+  .cultivation-path h2 { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+  .path-flow { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .path-node { flex: 1; text-align: center; padding: 12px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
+  .path-node.active { background: var(--gold-light); border-color: var(--gold); }
+  .path-node-icon { font-size: 24px; margin-bottom: 4px; }
+  .path-node-name { font-size: 12px; font-weight: 600; }
+  .path-node-en { font-size: 10px; color: var(--text-secondary); margin-top: 2px; }
+  .path-arrow { color: var(--text-secondary); font-size: 20px; }
+  .map-section, .power-section, .person-section, .strategy-section, .timeline, .follow-up, .emergency { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+  .map-section h2, .power-section h2, .strategy-section h2, .timeline h2, .follow-up h2 { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+  .map-canvas { width: 100%; min-height: 360px; position: relative; background: #F8FAFB; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; }
+  .node { position: absolute; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; min-width: 80px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .node-role { font-size: 11px; font-weight: 600; opacity: 0.8; margin-bottom: 2px; }
+  .node-name { font-size: 14px; font-weight: 600; }
+  .node-you { background: var(--accent-light); border: 2px solid var(--accent); color: var(--accent); }
+  .node-decision { background: var(--danger-light); border: 2px solid var(--danger); color: #991B1B; }
+  .node-influencer { background: var(--warning-light); border: 2px solid var(--warning); color: #92400E; }
+  .node-executor { background: var(--purple-light); border: 2px solid var(--purple); color: #5B21B6; }
+  .node-leverage { background: var(--success-light); border: 2px solid var(--success); color: #065F46; }
+  .map-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+  .power-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .radar-container { max-width: 320px; margin: 0 auto; }
+  .radar-svg { width: 100%; height: auto; }
+  .power-legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; margin-bottom: 8px; }
+  .power-legend-color { width: 16px; height: 16px; border-radius: 3px; }
+  .person-grid { display: grid; gap: 12px; }
+  .person-card { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .person-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .person-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .person-name { font-size: 16px; font-weight: 600; }
+  .person-role-badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+  .person-detail { font-size: 13px; color: var(--text-secondary); margin-top: 8px; }
+  .person-detail strong { color: var(--text); }
+  .gap-indicator { margin-top: 12px; padding: 12px; background: var(--warning-light); border-radius: 6px; font-size: 13px; color: #92400E; }
+  .wukong-strategy { background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); border: 1px solid #FCD34D; border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+  .wukong-strategy-name { font-size: 18px; font-weight: 700; color: var(--gold); margin-bottom: 4px; }
+  .wukong-strategy-en { font-size: 12px; color: #92400E; font-style: italic; margin-bottom: 16px; }
+  .wukong-strategy-line { font-size: 14px; margin-bottom: 8px; line-height: 1.7; }
+  .wukong-xinfa { margin-top: 16px; padding: 12px 16px; background: rgba(217, 119, 6, 0.1); border-left: 3px solid var(--gold); border-radius: 4px; font-size: 14px; color: #78350F; font-style: italic; }
+  .emergency { background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%); border: 2px solid var(--danger); }
+  .emergency-header { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+  .emergency-title { font-size: 18px; font-weight: 700; color: #991B1B; }
+  .emergency-script { background: white; border: 1px solid #FCA5A5; border-radius: 8px; padding: 16px; margin: 12px 0; font-size: 15px; font-style: italic; }
+  .timeline-item { display: flex; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .timeline-item:last-child { border-bottom: none; }
+  .timeline-period { min-width: 100px; font-weight: 600; color: var(--accent); font-size: 13px; }
+  .timeline-content { flex: 1; font-size: 14px; color: var(--text-secondary); }
+  .follow-up-date { font-size: 14px; color: var(--accent); font-weight: 600; margin-bottom: 8px; }
+  .follow-up-text { font-size: 14px; color: var(--text-secondary); }
+  .follow-up-questions { margin-top: 16px; padding: 16px; background: var(--bg); border-radius: 8px; }
+  .follow-up-questions h3 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+  .follow-up-questions ul { list-style: none; padding-left: 0; }
+  .follow-up-questions li { font-size: 13px; color: var(--text-secondary); margin-bottom: 4px; padding-left: 16px; position: relative; }
+  .follow-up-questions li::before { content: '✦'; position: absolute; left: 0; color: var(--gold); }
+  @media (max-width: 640px) {
+    .container { padding: 16px; }
+    h1 { font-size: 22px; }
+    .person-grid { grid-template-columns: 1fr; }
+    .power-grid { grid-template-columns: 1fr; }
+    .path-flow { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🗺️ 职场关系地图 <span class="version-tag">v2.2 · 悟空</span></h1>
+  <div class="subtitle">🐂 老黄牛困境 × 🎭 空降兵生存 × 🎯 向上管理 — 交叉场景</div>
+
+  <div class="wukong-quote">
+    <div class="wukong-quote-label">⚔ 悟空心法</div>
+    <div class="wukong-quote-text">"你被压在五行山下，不是因为你不行，是因为新秩序要立起来。你要做的，是在山下的500年里——看清他们怎么犯错，等他们需要你的时候，你就是唯一能请得动的人。"</div>
+    <div class="wukong-quote-source">——《悟空策略库·五行山隐忍》</div>
+  </div>
+
+  <div class="cultivation-path">
+    <h2>🛤️ 你的修行路径</h2>
+    <div class="path-flow">
+      <div class="path-node active"><div class="path-node-icon">🐵</div><div class="path-node-name">心猿</div><div class="path-node-en">明心</div></div>
+      <div class="path-arrow">→</div>
+      <div class="path-node active"><div class="path-node-icon">👁</div><div class="path-node-name">火眼</div><div class="path-node-en">识局</div></div>
+      <div class="path-arrow">→</div>
+      <div class="path-node active"><div class="path-node-icon">⭕</div><div class="path-node-name">紧箍</div><div class="path-node-en">承局</div></div>
+      <div class="path-arrow">→</div>
+      <div class="path-node active"><div class="path-node-icon">🎭</div><div class="path-node-name">七十二变</div><div class="path-node-en">变局</div></div>
+      <div class="path-arrow">→</div>
+      <div class="path-node"><div class="path-node-icon">☸️</div><div class="path-node-name">归正</div><div class="path-node-en">定局</div></div>
+    </div>
+  </div>
+
+  <div class="situation">
+    <div class="situation-label">你的困局</div>
+    <div class="situation-text">做了两个上线项目、数据不错，但被新总监系统性"剥离"到打杂位，晋升窗口在1个月后。</div>
+    <div class="misjudgment">
+      <div class="misjudgment-label">关键误判</div>
+      <div class="misjudgment-text">你以为问题是"做得好不好"，其实是"在新秩序里你还没被新总监接纳"。数据再好，新总监没动力推荐你的过去——因为那不是他的"政绩"。</div>
+    </div>
+  </div>
+
+  <div class="map-section">
+    <h2>局势图</h2>
+    <div class="map-canvas" id="mapCanvas">
+      <svg class="map-svg" id="mapSvg"></svg>
+    </div>
+  </div>
+
+  <div class="power-section">
+    <h2>⚖️ 力量对比</h2>
+    <div class="power-grid">
+      <div class="radar-container">
+        <svg class="radar-svg" viewBox="0 0 320 320">
+          <g id="radarGrid"></g>
+          <g id="radarOpponent"></g>
+          <g id="radarYou"></g>
+          <g id="radarLabels"></g>
+        </svg>
+      </div>
+      <div class="power-legend">
+        <div class="power-legend-item">
+          <div class="power-legend-color" style="background: var(--accent); opacity: 0.5;"></div>
+          <span>你的力量（潜力）</span>
+        </div>
+        <div class="power-legend-item">
+          <div class="power-legend-color" style="background: var(--danger); opacity: 0.5;"></div>
+          <span>对方的力量（阻力）</span>
+        </div>
+        <div class="power-legend-item" style="margin-top: 12px; font-size: 12px; color: var(--text-secondary);">
+          <span>📌 五个维度评估：权力、信息、资源、心智、时机</span>
+        </div>
+        <div class="power-legend-item" style="margin-top: 8px; font-size: 12px; color: var(--text);">
+          <strong>关键判断：</strong>硬权力你完全没有，但心智和时机是你的潜在优势。6个月后新总监需要交付成果，如果他嫡系出不了活，他会回来找你。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="person-section">
+    <h2 style="font-size: 18px; font-weight: 600; margin-bottom: 16px;">人物解码</h2>
+    <div class="person-grid" id="personGrid"></div>
+  </div>
+
+  <div class="strategy-section">
+    <h2>🛡️ 悟空策略组合</h2>
+
+    <div class="wukong-strategy">
+      <div class="wukong-strategy-name">⭕ 紧箍咒平衡术</div>
+      <div class="wukong-strategy-en">Tightening Spell Balance · 承局之法</div>
+      <div class="wukong-strategy-line"><strong>核心：</strong>新总监的"嫡系优先"是公司规则（咒语），你不能也不该硬反。但咒语有边界——晋升材料中的"过去6个月成果"是客观的、新总监的"立威"不是"灭人"、老板说"先配合"是让你低头不是让你消失。</div>
+      <div class="wukong-strategy-line"><strong>行动：</strong>6个月内不争抢核心项目，专心做支持性工作并做漂亮；每周给老板发工作周报（在新总监过滤信息之外留通道）；把晋升材料的"过去成果"部分现在就准备好。</div>
+      <div class="wukong-xinfa">💬 "紧箍咒不是让你不痛，是让你在痛的时候依然能举棒。能忍、能判断、能挥棒——这才是斗战胜佛。"</div>
+    </div>
+
+    <div class="wukong-strategy">
+      <div class="wukong-strategy-name">🪄 金箍棒一击</div>
+      <div class="wukong-strategy-en">Golden Cudgel Strike · 发力之法</div>
+      <div class="wukong-strategy-line"><strong>核心：</strong>你最强的金箍棒是那两个上线项目的数据复盘——不可被剥夺（已上线）、可被引用（晋升/分享/文章）、不可被忽视（HR和老板都看数据）。</div>
+      <div class="wukong-strategy-line"><strong>行动：</strong>本周内做3页"项目复盘"PPT；下周在跨部门会议上分享；下个月晋升答辩时直接用。这一棒不砸向任何人，砸向"事实"。事实是新总监抢不走的金箍棒。</div>
+      <div class="wukong-xinfa">💬 "重剑无锋，大巧不工。找到你那根13500斤的棒子，在对的地方，一棒就够。"</div>
+    </div>
+
+    <div class="wukong-strategy">
+      <div class="wukong-strategy-name">🎭 七十二变</div>
+      <div class="wukong-strategy-en">72 Transformations · 变局之法</div>
+      <div class="wukong-strategy-line"><strong>核心：</strong>不变的是本体（成为T2产品经理），变的是角色（在不同人面前的不同面）。</div>
+      <div class="wukong-strategy-line"><strong>行动：</strong>对新总监说"我帮老王做点前置工作"（让他觉得你有用且不构成威胁）；对老板说"我在调整自己跟新总监对齐"（让他看到你在适应）；对老王说"我整理一份交接文档给你"（建立传帮带关系，他可能反过来帮你说话）；对HR/跨部门说"我在调整节奏"（留好口碑）。</div>
+      <div class="wukong-xinfa">💬 "七十二变不是让你丢掉自己，是让你带着自己的内核，走到任何地方都站得住。"</div>
+    </div>
+
+    <div class="wukong-strategy">
+      <div class="wukong-strategy-name">⛰ 五行山隐忍</div>
+      <div class="wukong-strategy-en">Five Finger Mountain Patience · 退局之法</div>
+      <div class="wukong-strategy-line"><strong>核心：</strong>老王接了你的项目，6个月后如果没做出来——新总监会比谁都急。你的机会不在他失败之前，在他失败之后。</div>
+      <div class="wukong-strategy-line"><strong>行动：</strong>接受"过渡期"的存在（不是100天，是6个月）；保持学习（行业/产品/技术）；保留旧世界连接（跨部门同事、前老板、外部猎头）；同时准备外部机会（给自己留后路，但不是用来吓自己的）。</div>
+      <div class="wukong-xinfa">💬 "五行山不是牢笼，是给悟空的闭关房。退不是认输，是给下一次大闹天宫蓄力。"</div>
+    </div>
+  </div>
+
+  <div class="emergency">
+    <div class="emergency-header">
+      <span style="font-size: 24px;">🚑</span>
+      <span class="emergency-title">急救话术（如果今天就要见新总监）</span>
+    </div>
+    <div style="font-size: 14px; margin-bottom: 12px; color: #991B1B;"><strong>目标：</strong>让新总监觉得你有用，且不构成威胁</div>
+    <div style="font-size: 14px; margin-bottom: 8px; color: #991B1B;"><strong>关键话术：</strong></div>
+    <div class="emergency-script">"X总，老王接的那个项目我之前做过一段时间，有些坑我踩过。我整理了一份'上手指南'给您和老王，您看看有没有用？<strong>如果老王有什么我能帮上的，随时叫我。</strong>"</div>
+    <div style="font-size: 14px; margin-top: 12px; color: #991B1B;"><strong>如果对方说"你以后专心做你手头的事"：</strong></div>
+    <div class="emergency-script">"明白，我这边先做好。如果老王那边需要配合，我再抽时间支持。<strong>其实我也想从您身上多学点东西</strong>——您带团队的方式跟我们之前完全不一样。"</div>
+    <div style="font-size: 14px; margin-top: 12px; color: #991B1B;"><strong>如果对方说"你现在手上的事太少"：</strong></div>
+    <div class="emergency-script">"我这边确实有空闲，<strong>要不我帮老王先做点前置工作</strong>？比如用户调研或数据埋点，这样他后面的开发能更顺。"</div>
+    <div style="font-size: 14px; margin-top: 12px; color: #991B1B;"><strong>绝对不要说：</strong>"我之前做的项目数据很好"（让他警惕）、"老板说让我配合你"（让他觉得你在用老板压他）、"我担心晋升"（暴露焦虑）。</div>
+  </div>
+
+  <div class="timeline">
+    <h2>⏰ 行动时间线</h2>
+    <div class="timeline-item">
+      <div class="timeline-period">本周 (Day 1-7)</div>
+      <div class="timeline-content">□ 把两个上线项目的数据复盘整理成 PPT（3页就够）<br>□ 主动给老王整理一份"项目交接文档"<br>□ 给老板发一封"工作周报"邮件（建立节奏）<br>□ 找1-2个跨部门同事喝咖啡（经营人脉）</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-period">本月 (Day 8-30)</div>
+      <div class="timeline-content">□ 在跨部门会议/产品评审上做一次小分享<br>□ 找机会让老板"撞见"你的产出（不是直接邀功）<br>□ 完成晋升材料的"过去成果"部分（提前准备）<br>□ 开始观察老王的项目进展（不评论，但心里有数）</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-period">3-6个月</div>
+      <div class="timeline-content">□ <strong>如果老王的项目顺利：</strong>你做支持者，关系经营到位<br>□ <strong>如果老王的项目出问题：</strong>主动补位，<strong>这是你最大的机会</strong><br>□ 同时准备外部机会（猎头、面试），给自己留后路</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-period">晋升答辩</div>
+      <div class="timeline-content">□ 用你之前的数据说话<br>□ 让 HR 知道"过去6个月你做了什么"<br>□ 不要让新总监的视角主导评价</div>
+    </div>
+  </div>
+
+  <div class="follow-up">
+    <h2>📅 14天后复盘</h2>
+    <div class="follow-up-date">2026-06-19（下周四）检查进展</div>
+    <div class="follow-up-text">两周后回顾：策略执行了吗？新总监态度有变化吗？老板对你的看法有变化吗？老王的项目进展如何？</div>
+    <div class="follow-up-questions">
+      <h3>复盘自检问题：</h3>
+      <ul>
+        <li>我这个月真的"配合"了吗？还是忍不住抢功了？</li>
+        <li>老板对我的态度有变化吗？还是更冷了？</li>
+        <li>新总监对老王的项目满意吗？他有没有来找我帮忙？</li>
+        <li>我的"项目复盘 PPT"做完了吗？用上了吗？</li>
+        <li>我有没有忍不住吐槽/抱怨？（如果有，赶紧改）</li>
+        <li>外部机会我开始看了吗？（猎头/面试）</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+const nodes = [
+  { id: 'you', name: '你', role: '老黄牛', type: 'you', x: 80, y: 180 },
+  { id: 'boss', name: '你的老板 (T1)', role: '旧盟友', type: 'influencer', x: 350, y: 60 },
+  { id: 'director', name: '新总监 (P9)', role: '决策者', type: 'decision', x: 600, y: 60 },
+  { id: 'laowang', name: '老王 (嫡系)', role: '新变量', type: 'executor', x: 350, y: 300 },
+  { id: 'hr', name: 'HR / 跨部门', role: '杠杆点', type: 'leverage', x: 600, y: 300 },
+];
+const edges = [
+  { from: 'you', to: 'boss', label: '旧信任' },
+  { from: 'boss', to: 'director', label: '授权', style: 'bold' },
+  { from: 'director', to: 'laowang', label: '嫡系' },
+  { from: 'director', to: 'you', label: '边缘化', style: 'dashed' },
+  { from: 'you', to: 'laowang', label: '传帮带' },
+  { from: 'you', to: 'hr', label: '留口碑' },
+];
+function activatePath(activeSteps) {
+  document.querySelectorAll('.path-node').forEach((el, i) => {
+    if (activeSteps.includes(i + 1)) el.classList.add('active');
+  });
+}
+activatePath([1, 2, 3, 4]);
+const canvas = document.getElementById('mapCanvas');
+const svg = document.getElementById('mapSvg');
+function renderMap() {
+  const w = canvas.offsetWidth;
+  const h = canvas.offsetHeight || 360;
+  svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  edges.forEach(e => {
+    const from = nodes.find(n => n.id === e.from);
+    const to = nodes.find(n => n.id === e.to);
+    if (!from || !to) return;
+    const x1 = from.x * w / 800 + 40;
+    const y1 = from.y * h / 400 + 20;
+    const x2 = to.x * w / 800 + 40;
+    const y2 = to.y * h / 400 + 20;
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+    line.setAttribute('class', 'map-line');
+    if (e.style === 'dashed') line.setAttribute('stroke-dasharray', '6,4');
+    if (e.style === 'bold') { line.setAttribute('stroke', '#1F2937'); line.setAttribute('stroke-width', '3'); }
+    if (e.label === '嫡系') { line.setAttribute('stroke', '#EF4444'); line.setAttribute('stroke-width', '3'); }
+    if (e.label === '边缘化') { line.setAttribute('stroke', '#F59E0B'); line.setAttribute('stroke-width', '2'); line.setAttribute('stroke-dasharray', '6,4'); }
+    if (e.label === '传帮带' || e.label === '留口碑') line.setAttribute('stroke', '#10B981');
+    svg.appendChild(line);
+    const midX = (x1 + x2) / 2;
+    const midY = (y1 + y2) / 2 - 8;
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', midX); text.setAttribute('y', midY);
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('font-size', '11');
+    text.setAttribute('fill', '#5A6270');
+    text.textContent = e.label;
+    svg.appendChild(text);
+  });
+  nodes.forEach(n => {
+    const div = document.createElement('div');
+    div.className = `node node-${n.type}`;
+    div.style.left = (n.x * w / 800) + 'px';
+    div.style.top = (n.y * h / 400) + 'px';
+    div.innerHTML = `<div class="node-role">${n.role}</div><div class="node-name">${n.name}</div>`;
+    canvas.appendChild(div);
+  });
+}
+const radarData = {
+  dimensions: ['权力', '信息', '资源', '心智', '时机'],
+  you: [4, 6, 5, 8, 7],
+  opponent: [9, 7, 6, 5, 6]
+};
+function renderRadar() {
+  const cx = 160, cy = 160, radius = 110;
+  const grid = document.getElementById('radarGrid');
+  const labels = document.getElementById('radarLabels');
+  const youG = document.getElementById('radarYou');
+  const oppG = document.getElementById('radarOpponent');
+  for (let i = 1; i <= 4; i++) {
+    const r = radius * i / 4;
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', cx); circle.setAttribute('cy', cy);
+    circle.setAttribute('r', r);
+    circle.setAttribute('fill', 'none');
+    circle.setAttribute('stroke', '#E5E7EB');
+    circle.setAttribute('stroke-dasharray', '2,2');
+    grid.appendChild(circle);
+  }
+  radarData.dimensions.forEach((d, i) => {
+    const angle = (Math.PI * 2 * i / radarData.dimensions.length) - Math.PI / 2;
+    const x = cx + radius * Math.cos(angle);
+    const y = cy + radius * Math.sin(angle);
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', cx); line.setAttribute('y1', cy);
+    line.setAttribute('x2', x); line.setAttribute('y2', y);
+    line.setAttribute('stroke', '#E5E7EB');
+    line.setAttribute('stroke-dasharray', '2,2');
+    grid.appendChild(line);
+    const lx = cx + (radius + 20) * Math.cos(angle);
+    const ly = cy + (radius + 20) * Math.sin(angle);
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', lx); text.setAttribute('y', ly);
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('dominant-baseline', 'middle');
+    text.setAttribute('font-size', '12');
+    text.setAttribute('font-weight', '600');
+    text.setAttribute('fill', '#1A1D21');
+    text.textContent = d;
+    labels.appendChild(text);
+  });
+  const youPoints = radarData.you.map((v, i) => {
+    const angle = (Math.PI * 2 * i / radarData.dimensions.length) - Math.PI / 2;
+    const r = radius * v / 10;
+    return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)];
+  });
+  const youPolygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+  youPolygon.setAttribute('points', youPoints.map(p => p.join(',')).join(' '));
+  youPolygon.setAttribute('fill', '#3B82F6');
+  youPolygon.setAttribute('fill-opacity', '0.3');
+  youPolygon.setAttribute('stroke', '#3B82F6');
+  youPolygon.setAttribute('stroke-width', '2');
+  youG.appendChild(youPolygon);
+  const oppPoints = radarData.opponent.map((v, i) => {
+    const angle = (Math.PI * 2 * i / radarData.dimensions.length) - Math.PI / 2;
+    const r = radius * v / 10;
+    return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)];
+  });
+  const oppPolygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+  oppPolygon.setAttribute('points', oppPoints.map(p => p.join(',')).join(' '));
+  oppPolygon.setAttribute('fill', '#EF4444');
+  oppPolygon.setAttribute('fill-opacity', '0.2');
+  oppPolygon.setAttribute('stroke', '#EF4444');
+  oppPolygon.setAttribute('stroke-width', '2');
+  oppG.appendChild(oppPolygon);
+}
+const persons = [
+  { name: '新总监 (P9)', role: '决策者', type: 'decision', yourView: '你觉得他要废你', reality: '他要"立威"——用嫡系做主项目是空降常规动作，不一定是针对你', gap: '你缺一个"让他愿意用你"的理由——他怕老人不服，你在被划入"老人"行列', signal: '权力姿态', signalColor: '#F59E0B' },
+  { name: '你的老板 (T1)', role: '旧盟友', type: 'influencer', yourView: '你觉得他不支持你', reality: '他在"观察"——看你能不能在新秩序里找到位置', gap: '你越能搞定新总监，他越支持你。他现在没放弃你，只是在等你的表现', signal: '观望/战略性沉默', signalColor: '#3B82F6' },
+  { name: '老王 (嫡系)', role: '新变量', type: 'executor', yourView: '你觉得他抢你项目', reality: '他也是"棋子"——用他来过渡，不是你死我活的关系', gap: '他对你的威胁没你想的那么大，反而可以变成你的"合作者"', signal: '角色冲突（可转化）', signalColor: '#8B5CF6' },
+  { name: 'HR / 跨部门', role: '杠杆点', type: 'leverage', yourView: '你没注意到他们', reality: 'HR 在等"6个月适应期"过去；跨部门同事是你的"外部盟友"', gap: 'HR 决定晋升材料怎么写、跨部门决定你的口碑——他们都是你的资产', signal: '隐性的关键人', signalColor: '#10B981' }
+];
+const grid = document.getElementById('personGrid');
+persons.forEach(p => {
+  const card = document.createElement('div');
+  card.className = 'person-card';
+  card.innerHTML = `<div class="person-header"><div class="person-icon" style="background:${p.signalColor}20;color:${p.signalColor}">${p.type === 'decision' ? '🔴' : p.type === 'influencer' ? '🟡' : p.type === 'executor' ? '🟣' : '🟢'}</div><div><div class="person-name">${p.name}</div><span class="person-role-badge" style="background:${p.signalColor}20;color:${p.signalColor}">${p.role} · ${p.signal}</span></div></div><div class="person-detail"><strong>你的判断：</strong>${p.yourView}</div><div class="person-detail"><strong>实际情况：</strong>${p.reality}</div><div class="gap-indicator">${p.gap}</div>`;
+  grid.appendChild(card);
+});
+renderMap();
+renderRadar();
+window.addEventListener('resize', () => {
+  svg.innerHTML = '';
+  document.querySelectorAll('.node').forEach(n => n.remove());
+  renderMap();
+});
+</script>
+</body>
+</html>

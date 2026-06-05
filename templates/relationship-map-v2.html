@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>职场关系地图 v2.2</title>
+<style>
+  :root {
+    --bg: #FAFBFC;
+    --card: #FFFFFF;
+    --border: #E8ECF0;
+    --text: #1A1D21;
+    --text-secondary: #5A6270;
+    --accent: #3B82F6;
+    --accent-light: #EFF6FF;
+    --danger: #EF4444;
+    --danger-light: #FEF2F2;
+    --success: #10B981;
+    --success-light: #ECFDF5;
+    --warning: #F59E0B;
+    --warning-light: #FFFBEB;
+    --purple: #8B5CF6;
+    --purple-light: #F5F3FF;
+    --gold: #D97706;
+    --gold-light: #FEF3C7;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', 'Helvetica Neue', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  .container { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+  .subtitle { color: var(--text-secondary); font-size: 15px; margin-bottom: 32px; }
+  .version-tag { display: inline-block; background: var(--gold-light); color: var(--gold); font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; margin-left: 8px; vertical-align: middle; }
+
+  /* 顶部金句 */
+  .wukong-quote { background: linear-gradient(135deg, #1F2937 0%, #374151 100%); color: #F9FAFB; padding: 20px 24px; border-radius: 12px; margin-bottom: 24px; position: relative; overflow: hidden; }
+  .wukong-quote::before { content: '⚔'; position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 64px; opacity: 0.15; }
+  .wukong-quote-label { font-size: 11px; font-weight: 600; color: var(--gold); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .wukong-quote-text { font-size: 16px; font-style: italic; line-height: 1.7; }
+  .wukong-quote-source { font-size: 12px; color: #9CA3AF; margin-top: 8px; }
+
+  /* 局势区 */
+  .situation { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+  .situation-label { font-size: 12px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .situation-text { font-size: 16px; font-weight: 500; }
+  .misjudgment { margin-top: 16px; padding: 16px; background: var(--warning-light); border-radius: 8px; border-left: 3px solid var(--warning); }
+  .misjudgment-label { font-size: 12px; font-weight: 600; color: var(--warning); margin-bottom: 4px; }
+  .misjudgment-text { font-size: 14px; color: #92400E; }
+
+  /* 修行路径指示器 */
+  .cultivation-path { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+  .cultivation-path h2 { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+  .path-flow { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .path-node { flex: 1; text-align: center; padding: 12px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; position: relative; }
+  .path-node.active { background: var(--gold-light); border-color: var(--gold); }
+  .path-node-icon { font-size: 24px; margin-bottom: 4px; }
+  .path-node-name { font-size: 12px; font-weight: 600; }
+  .path-node-en { font-size: 10px; color: var(--text-secondary); margin-top: 2px; }
+  .path-arrow { color: var(--text-secondary); font-size: 20px; flex-shrink: 0; }
+
+  /* 局势图 */
+  .map-section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+  .map-section h2 { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+  .map-canvas { width: 100%; min-height: 360px; position: relative; background: #F8FAFB; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; }
+  .node { position: absolute; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; min-width: 80px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .node:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+  .node-role { font-size: 11px; font-weight: 600; opacity: 0.8; margin-bottom: 2px; }
+  .node-name { font-size: 14px; font-weight: 600; }
+  .node-you { background: var(--accent-light); border: 2px solid var(--accent); color: var(--accent); }
+  .node-decision { background: var(--danger-light); border: 2px solid var(--danger); color: #991B1B; }
+  .node-influencer { background: var(--warning-light); border: 2px solid var(--warning); color: #92400E; }
+  .node-executor { background: var(--purple-light); border: 2px solid var(--purple); color: #5B21B6; }
+  .node-leverage { background: var(--success-light); border: 2px solid var(--success); color: #065F46; }
+  .map-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+  .map-line { stroke: #CBD5E1; stroke-width: 2; fill: none; }
+  .map-arrow { fill: #CBD5E1; }
+
+  /* 力量对比雷达图 */
+  .power-section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+  .power-section h2 { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+  .power-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .radar-container { width: 100%; max-width: 320px; margin: 0 auto; }
+  .radar-svg { width: 100%; height: auto; }
+  .power-legend { display: flex; flex-direction: column; gap: 8px; }
+  .power-legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  .power-legend-color { width: 16px; height: 16px; border-radius: 3px; }
+
+  /* 人物卡 */
+  .person-grid { display: grid; gap: 12px; margin-bottom: 24px; }
+  .person-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: all 0.2s; }
+  .person-card:hover { border-color: var(--accent); }
+  .person-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .person-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .person-name { font-size: 16px; font-weight: 600; }
+  .person-role-badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+  .person-detail { font-size: 13px; color: var(--text-secondary); margin-top: 8px; }
+  .person-detail strong { color: var(--text); }
+  .gap-indicator { margin-top: 12px; padding: 12px; background: var(--warning-light); border-radius: 6px; font-size: 13px; color: #92400E; }
+  .gap-indicator::before { content: '\26A1 '; }
+
+  /* 悟空策略 */
+  .wukong-strategy { background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); border: 1px solid #FCD34D; border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+  .wukong-strategy-name { font-size: 18px; font-weight: 700; color: var(--gold); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .wukong-strategy-en { font-size: 12px; color: #92400E; font-style: italic; margin-bottom: 16px; }
+  .wukong-strategy-line { font-size: 14px; margin-bottom: 8px; line-height: 1.7; }
+  .wukong-xinfa { margin-top: 16px; padding: 12px 16px; background: rgba(217, 119, 6, 0.1); border-left: 3px solid var(--gold); border-radius: 4px; font-size: 14px; color: #78350F; font-style: italic; }
+
+  /* 急救模式 */
+  .emergency { background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%); border: 2px solid var(--danger); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+  .emergency-header { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+  .emergency-title { font-size: 18px; font-weight: 700; color: #991B1B; }
+  .emergency-script { background: white; border: 1px solid #FCA5A5; border-radius: 8px; padding: 16px; margin: 12px 0; font-size: 15px; font-style: italic; color: var(--text); }
+
+  /* 通用策略 */
+  .strategy-section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+  .strategy-section h2 { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+  .strategy-main { background: var(--accent-light); border: 1px solid #BFDBFE; border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+  .strategy-name { font-size: 16px; font-weight: 600; color: var(--accent); margin-bottom: 12px; }
+  .strategy-item { display: flex; gap: 8px; margin-bottom: 8px; font-size: 14px; }
+  .strategy-label { font-weight: 600; color: var(--text-secondary); min-width: 56px; flex-shrink: 0; }
+  .strategy-value { color: var(--text); }
+  .strategy-script { background: white; border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-top: 12px; font-size: 14px; font-style: italic; color: var(--text); line-height: 1.7; }
+  .strategy-backup { background: #F8FAFB; border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  .strategy-backup .strategy-name { color: var(--text-secondary); font-size: 14px; }
+  .dont-do { background: var(--danger-light); border: 1px solid #FECACA; border-radius: 10px; padding: 16px; }
+  .dont-do-title { font-size: 13px; font-weight: 600; color: var(--danger); margin-bottom: 4px; }
+  .dont-do-text { font-size: 14px; color: #991B1B; }
+
+  /* 14天复盘 */
+  .follow-up { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+  .follow-up h2 { font-size: 18px; font-weight: 600; margin-bottom: 12px; }
+  .follow-up-date { font-size: 14px; color: var(--accent); font-weight: 600; margin-bottom: 8px; }
+  .follow-up-text { font-size: 14px; color: var(--text-secondary); }
+  .follow-up-questions { margin-top: 16px; padding: 16px; background: var(--bg); border-radius: 8px; }
+  .follow-up-questions h3 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+  .follow-up-questions ul { list-style: none; padding-left: 0; }
+  .follow-up-questions li { font-size: 13px; color: var(--text-secondary); margin-bottom: 4px; padding-left: 16px; position: relative; }
+  .follow-up-questions li::before { content: '✦'; position: absolute; left: 0; color: var(--gold); }
+
+  @media (max-width: 640px) {
+    .container { padding: 16px; }
+    h1 { font-size: 22px; }
+    .person-grid { grid-template-columns: 1fr; }
+    .power-grid { grid-template-columns: 1fr; }
+    .path-flow { flex-wrap: wrap; }
+    .path-node { min-width: 60px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🗺️ 职场关系地图 <span class="version-tag">v2.2 · 悟空</span></h1>
+  <div class="subtitle">基于你的描述，帮你看清局势、找到突破口</div>
+
+  <!-- 悟空金句 -->
+  <div class="wukong-quote">
+    <div class="wukong-quote-label">⚔ 悟空心法</div>
+    <div class="wukong-quote-text" id="wukongQuote">"紧箍咒不是让你不痛，是让你在痛的时候依然能举棒。"</div>
+    <div class="wukong-quote-source">——《悟空策略库·紧箍咒平衡术》</div>
+  </div>
+
+  <!-- 修行路径 -->
+  <div class="cultivation-path">
+    <h2>🛤️ 你的修行路径</h2>
+    <div class="path-flow">
+      <div class="path-node" id="path-1">
+        <div class="path-node-icon">🐵</div>
+        <div class="path-node-name">心猿</div>
+        <div class="path-node-en">明心</div>
+      </div>
+      <div class="path-arrow">→</div>
+      <div class="path-node" id="path-2">
+        <div class="path-node-icon">👁</div>
+        <div class="path-node-name">火眼</div>
+        <div class="path-node-en">识局</div>
+      </div>
+      <div class="path-arrow">→</div>
+      <div class="path-node" id="path-3">
+        <div class="path-node-icon">⭕</div>
+        <div class="path-node-name">紧箍</div>
+        <div class="path-node-en">承局</div>
+      </div>
+      <div class="path-arrow">→</div>
+      <div class="path-node" id="path-4">
+        <div class="path-node-icon">🎭</div>
+        <div class="path-node-name">七十二变</div>
+        <div class="path-node-en">变局</div>
+      </div>
+      <div class="path-arrow">→</div>
+      <div class="path-node" id="path-5">
+        <div class="path-node-icon">☸️</div>
+        <div class="path-node-name">归正</div>
+        <div class="path-node-en">定局</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 局势速读 -->
+  <div class="situation">
+    <div class="situation-label">你的困局</div>
+    <div class="situation-text" id="situation">推新审批流程，产品部领导用优先级框架压制协作意愿</div>
+    <div class="misjudgment" id="misjudgment">
+      <div class="misjudgment-label">关键误判</div>
+      <div class="misjudgment-text">你以为问题出在"方案不够好"，其实他根本没在评估方案——他在确认自己说了算。</div>
+    </div>
+  </div>
+
+  <!-- 局势图 -->
+  <div class="map-section">
+    <h2>局势图</h2>
+    <div class="map-canvas" id="mapCanvas">
+      <svg class="map-svg" id="mapSvg"></svg>
+    </div>
+  </div>
+
+  <!-- 力量对比 -->
+  <div class="power-section">
+    <h2>⚖️ 力量对比</h2>
+    <div class="power-grid">
+      <div class="radar-container">
+        <svg class="radar-svg" viewBox="0 0 320 320">
+          <!-- 背景网格 -->
+          <g id="radarGrid"></g>
+          <!-- 对方力量 -->
+          <g id="radarOpponent"></g>
+          <!-- 你的力量 -->
+          <g id="radarYou"></g>
+          <!-- 标签 -->
+          <g id="radarLabels"></g>
+        </svg>
+      </div>
+      <div class="power-legend">
+        <div class="power-legend-item">
+          <div class="power-legend-color" style="background: var(--accent); opacity: 0.5;"></div>
+          <span>你的力量（潜力）</span>
+        </div>
+        <div class="power-legend-item">
+          <div class="power-legend-color" style="background: var(--danger); opacity: 0.5;"></div>
+          <span>对方的力量（阻力）</span>
+        </div>
+        <div class="power-legend-item" style="margin-top: 12px; font-size: 12px; color: var(--text-secondary);">
+          <span>📌 五个维度评估：权力、信息、资源、心智、时机</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 人物卡 -->
+  <div class="person-grid" id="personGrid"></div>
+
+  <!-- 悟空策略 -->
+  <div class="strategy-section">
+    <h2>🛡️ 悟空策略</h2>
+    <div class="wukong-strategy">
+      <div class="wukong-strategy-name">👁 紧箍咒平衡术</div>
+      <div class="wukong-strategy-en">Tightening Spell Balance · 承局之法</div>
+      <div class="wukong-strategy-line"><strong>核心：</strong>约束不是限制，是让你专注。咒语念完，你还是孙悟空。</div>
+      <div class="wukong-strategy-line"><strong>前提：</strong>对方有权设"咒"，但咒语有边界——找边界内能挥棒的地方。</div>
+      <div class="wukong-strategy-line"><strong>行动：</strong>先承认产品部的"优先级框架"是公司的规则（念咒），然后在这个框架内找到"运维部的利益"作为你的发力点（边界内挥棒）。</div>
+      <div class="wukong-xinfa">
+        💬 一句话心法："紧箍咒不是让你不痛，是让你在痛的时候依然能举棒。能忍、能判断、能挥棒——这才是斗战胜佛。"
+      </div>
+    </div>
+
+    <div class="wukong-strategy">
+      <div class="wukong-strategy-name">🪄 七十二变</div>
+      <div class="wukong-strategy-en">72 Transformations · 变局之法</div>
+      <div class="wukong-strategy-line"><strong>核心：</strong>不变的是本体（你的目标），变的是角色（在不同人面前的不同面）。</div>
+      <div class="wukong-strategy-line"><strong>行动：</strong>对运维部说"利益"（他们能得到什么），对产品部说"配合"（不是要挟而是合作），对老板说"风险"（控制了什么、避免了什么）。</div>
+      <div class="wukong-xinfa">
+        💬 一句话心法："七十二变，不是让你丢掉自己，是让你带着自己的内核，走到任何地方都站得住。"
+      </div>
+    </div>
+  </div>
+
+  <!-- 急救模式 -->
+  <div class="emergency" id="emergencyBlock">
+    <div class="emergency-header">
+      <span style="font-size: 24px;">🚑</span>
+      <span class="emergency-title">急救话术（如果今天就要开会）</span>
+    </div>
+    <div style="font-size: 14px; margin-bottom: 12px; color: #991B1B;"><strong>目标：</strong>让运维部在下周会议前主动表态配合</div>
+    <div style="font-size: 14px; margin-bottom: 8px; color: #991B1B;"><strong>关键话术（私下找运维部）：</strong></div>
+    <div class="emergency-script">
+      "新审批流程如果上，能帮你们减少重复审批的 30% 时间。我这边方案已经写好了，你看看哪些地方需要改？<strong>下周会上，如果你们能提一句"这个流程我们也受益"，我就有底气了。</strong>"
+    </div>
+    <div style="font-size: 14px; margin-top: 12px; color: #991B1B;"><strong>如果对方说"为什么让我们提"：</strong></div>
+    <div class="emergency-script">
+      "因为你们是受益方啊，你们提出来比我们提更有说服力。**你们提，是为自己提；我们提，是求人配合。**"
+    </div>
+    <div style="font-size: 14px; margin-top: 12px; color: #991B1B;"><strong>绝对不要说：</strong>"产品部不配合我"、"这个流程必须上"——前者让他警惕，后者让他站到产品部那边。</div>
+  </div>
+
+  <!-- 通用策略 -->
+  <div class="strategy-section">
+    <h2>🎯 策略详案</h2>
+    <div class="strategy-main">
+      <div class="strategy-name">🎯 私下铺路，公开借力</div>
+      <div class="strategy-item"><span class="strategy-label">做什么</span><span class="strategy-value">先找运维部私下对齐利益，让他们在下次会上主动提出配合需求</span></div>
+      <div class="strategy-item"><span class="strategy-label">找谁</span><span class="strategy-value">运维部对接人，不是产品部</span></div>
+      <div class="strategy-item"><span class="strategy-label">时机</span><span class="strategy-value">明天早上，在下次产品部会议之前</span></div>
+      <div class="strategy-item"><span class="strategy-label">说什么</span></div>
+      <div class="strategy-script">"新审批流程帮你们减少重复审批，你们只需要在节点A确认一次。我这边方案已经写好了，你看一眼，如果没问题下次会上你们提出来就行。"</div>
+      <div class="strategy-item"><span class="strategy-label">预期反应</span><span class="strategy-value">运维部会问"为什么让我们提"——你就说"因为你们是受益方，你们提最有说服力"</span></div>
+    </div>
+    <div class="strategy-backup">
+      <div class="strategy-name">备用：创造不可逆节点</div>
+      <div class="strategy-item"><span class="strategy-label">做什么</span><span class="strategy-value">如果私下铺路3天内没进展，设定"下周五前确认方向"的死线，关联到老板的月度汇报</span></div>
+    </div>
+    <div class="dont-do">
+      <div class="dont-do-title">⛔ 绝对不要做</div>
+      <div class="dont-do-text">不要在下次会议上直接反驳产品部领导的优先级框架——他准备好了，你赢不了。先升级到"谁来定义规则"的层面，而不是"规则本身对不对"。</div>
+    </div>
+  </div>
+
+  <!-- 14天复盘 -->
+  <div class="follow-up">
+    <h2>📅 14天复盘</h2>
+    <div class="follow-up-date">14天后（YYYY-MM-DD）检查进展</div>
+    <div class="follow-up-text">两周后回顾：策略执行了吗？对方反应如何？局势图还准吗？如果情况有变，重新分析。</div>
+    <div class="follow-up-questions">
+      <h3>复盘自检问题：</h3>
+      <ul>
+        <li>那个行动做了吗？效果如何？</li>
+        <li>对方的反应跟我预期的一样吗？哪里不同？</li>
+        <li>这个新的信息改变了我对局势的判断吗？</li>
+        <li>下一步是继续原计划，还是调整方向？</li>
+        <li>这次困局让我学到了什么？下个场景能用上吗？</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== 节点数据 ==========
+const nodes = [
+  { id: 'you', name: '你', role: '推动者', type: 'you', x: 50, y: 180 },
+  { id: 'decision', name: '产品部领导', role: '决策者', type: 'decision', x: 380, y: 60 },
+  { id: 'influencer', name: '产品部对接人', role: '影响者', type: 'influencer', x: 380, y: 300 },
+  { id: 'leverage', name: '运维部', role: '杠杆点', type: 'leverage', x: 680, y: 180 },
+];
+const edges = [
+  { from: 'you', to: 'decision', label: '推不动' },
+  { from: 'you', to: 'influencer', label: '间接沟通' },
+  { from: 'decision', to: 'influencer', label: '上下级' },
+  { from: 'influencer', to: 'leverage', label: '跨部门' },
+  { from: 'you', to: 'leverage', label: '突破口', style: 'dashed' },
+];
+
+// ========== 修行路径激活 ==========
+// 根据场景激活对应路径节点
+function activatePath(activeSteps) {
+  activeSteps.forEach(step => {
+    const el = document.getElementById('path-' + step);
+    if (el) el.classList.add('active');
+  });
+}
+// 示例：当前用户已经走到"火眼"和"紧箍"阶段
+activatePath([1, 2, 3]);
+
+// ========== 渲染局势图 ==========
+const canvas = document.getElementById('mapCanvas');
+const svg = document.getElementById('mapSvg');
+function renderMap() {
+  const w = canvas.offsetWidth;
+  const h = canvas.offsetHeight || 360;
+  svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  edges.forEach(e => {
+    const from = nodes.find(n => n.id === e.from);
+    const to = nodes.find(n => n.id === e.to);
+    if (!from || !to) return;
+    const x1 = from.x * w / 800 + 40;
+    const y1 = from.y * h / 400 + 20;
+    const x2 = to.x * w / 800 + 40;
+    const y2 = to.y * h / 400 + 20;
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+    line.setAttribute('class', 'map-line');
+    if (e.style === 'dashed') line.setAttribute('stroke-dasharray', '6,4');
+    if (e.label === '突破口') { line.setAttribute('stroke', '#10B981'); line.setAttribute('stroke-width', '3'); }
+    svg.appendChild(line);
+    const midX = (x1 + x2) / 2;
+    const midY = (y1 + y2) / 2 - 8;
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', midX); text.setAttribute('y', midY);
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('font-size', '11');
+    text.setAttribute('fill', '#5A6270');
+    text.textContent = e.label;
+    svg.appendChild(text);
+  });
+  nodes.forEach(n => {
+    const div = document.createElement('div');
+    div.className = `node node-${n.type}`;
+    div.style.left = (n.x * w / 800) + 'px';
+    div.style.top = (n.y * h / 400) + 'px';
+    div.innerHTML = `<div class="node-role">${n.role}</div><div class="node-name">${n.name}</div>`;
+    canvas.appendChild(div);
+  });
+}
+
+// ========== 力量对比雷达图 ==========
+const radarData = {
+  dimensions: ['权力', '信息', '资源', '心智', '时机'],
+  you: [4, 6, 5, 8, 7],      // 你的力量（潜力）
+  opponent: [9, 7, 6, 5, 6]   // 对方力量（阻力）
+};
+function renderRadar() {
+  const cx = 160, cy = 160, radius = 110;
+  const grid = document.getElementById('radarGrid');
+  const labels = document.getElementById('radarLabels');
+  const youG = document.getElementById('radarYou');
+  const oppG = document.getElementById('radarOpponent');
+  // 网格圈
+  for (let i = 1; i <= 4; i++) {
+    const r = radius * i / 4;
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', cx); circle.setAttribute('cy', cy);
+    circle.setAttribute('r', r);
+    circle.setAttribute('fill', 'none');
+    circle.setAttribute('stroke', '#E5E7EB');
+    circle.setAttribute('stroke-dasharray', '2,2');
+    grid.appendChild(circle);
+  }
+  // 轴线
+  radarData.dimensions.forEach((d, i) => {
+    const angle = (Math.PI * 2 * i / radarData.dimensions.length) - Math.PI / 2;
+    const x = cx + radius * Math.cos(angle);
+    const y = cy + radius * Math.sin(angle);
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', cx); line.setAttribute('y1', cy);
+    line.setAttribute('x2', x); line.setAttribute('y2', y);
+    line.setAttribute('stroke', '#E5E7EB');
+    line.setAttribute('stroke-dasharray', '2,2');
+    grid.appendChild(line);
+    // 标签
+    const lx = cx + (radius + 20) * Math.cos(angle);
+    const ly = cy + (radius + 20) * Math.sin(angle);
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', lx); text.setAttribute('y', ly);
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('dominant-baseline', 'middle');
+    text.setAttribute('font-size', '12');
+    text.setAttribute('font-weight', '600');
+    text.setAttribute('fill', '#1A1D21');
+    text.textContent = d;
+    labels.appendChild(text);
+  });
+  // 多边形 - 你
+  const youPoints = radarData.you.map((v, i) => {
+    const angle = (Math.PI * 2 * i / radarData.dimensions.length) - Math.PI / 2;
+    const r = radius * v / 10;
+    return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)];
+  });
+  const youPolygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+  youPolygon.setAttribute('points', youPoints.map(p => p.join(',')).join(' '));
+  youPolygon.setAttribute('fill', '#3B82F6');
+  youPolygon.setAttribute('fill-opacity', '0.3');
+  youPolygon.setAttribute('stroke', '#3B82F6');
+  youPolygon.setAttribute('stroke-width', '2');
+  youG.appendChild(youPolygon);
+  // 多边形 - 对方
+  const oppPoints = radarData.opponent.map((v, i) => {
+    const angle = (Math.PI * 2 * i / radarData.dimensions.length) - Math.PI / 2;
+    const r = radius * v / 10;
+    return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)];
+  });
+  const oppPolygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+  oppPolygon.setAttribute('points', oppPoints.map(p => p.join(',')).join(' '));
+  oppPolygon.setAttribute('fill', '#EF4444');
+  oppPolygon.setAttribute('fill-opacity', '0.2');
+  oppPolygon.setAttribute('stroke', '#EF4444');
+  oppPolygon.setAttribute('stroke-width', '2');
+  oppG.appendChild(oppPolygon);
+}
+
+// ========== 人物卡 ==========
+const persons = [
+  { name: '产品部领导', role: '决策者', type: 'decision', yourView: '你觉得他是阻力', reality: '他在确认自己的权力——"优先级"只是他的工具，不是他的真实诉求', gap: '你缺的不是更好的方案，而是一个让他觉得"这事我定了"的台阶', signal: '权力姿态', signalColor: '#F59E0B' },
+  { name: '产品部对接人', role: '影响者', type: 'influencer', yourView: '你觉得他也在反对', reality: '他在等领导表态——领导不说话，他不敢动', gap: '他不是阻力，但你现在找他公开聊等于逼他选边', signal: '信息不对称', signalColor: '#3B82F6' },
+  { name: '运维部', role: '杠杆点', type: 'leverage', yourView: '你没注意到他们', reality: '新流程也影响他们，他们比产品部更急着优化', gap: '他们是突破口，但你还没跟他们沟通过', signal: '利益冲突（潜在推动）', signalColor: '#10B981' }
+];
+const grid = document.getElementById('personGrid');
+persons.forEach(p => {
+  const card = document.createElement('div');
+  card.className = 'person-card';
+  card.innerHTML = `<div class="person-header"><div class="person-icon" style="background:${p.signalColor}20;color:${p.signalColor}">${p.type === 'decision' ? '🔴' : p.type === 'influencer' ? '🟡' : '🟢'}</div><div><div class="person-name">${p.name}</div><span class="person-role-badge" style="background:${p.signalColor}20;color:${p.signalColor}">${p.role} · ${p.signal}</span></div></div><div class="person-detail"><strong>你的判断：</strong>${p.yourView}</div><div class="person-detail"><strong>实际情况：</strong>${p.reality}</div><div class="gap-indicator">${p.gap}</div>`;
+  grid.appendChild(card);
+});
+
+// 渲染
+renderMap();
+renderRadar();
+window.addEventListener('resize', () => {
+  svg.innerHTML = '';
+  document.querySelectorAll('.node').forEach(n => n.remove());
+  renderMap();
+});
+</script>
+</body>
+</html>

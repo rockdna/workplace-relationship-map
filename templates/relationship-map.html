@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>职场关系地图</title>
+<style>
+  :root {
+    --bg: #FAFBFC;
+    --card: #FFFFFF;
+    --border: #E8ECF0;
+    --text: #1A1D21;
+    --text-secondary: #5A6270;
+    --accent: #3B82F6;
+    --accent-light: #EFF6FF;
+    --danger: #EF4444;
+    --danger-light: #FEF2F2;
+    --success: #10B981;
+    --success-light: #ECFDF5;
+    --warning: #F59E0B;
+    --warning-light: #FFFBEB;
+    --purple: #8B5CF6;
+    --purple-light: #F5F3FF;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', 'Helvetica Neue', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  .container { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+  .subtitle { color: var(--text-secondary); font-size: 15px; margin-bottom: 32px; }
+  .situation { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+  .situation-label { font-size: 12px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .situation-text { font-size: 16px; font-weight: 500; }
+  .misjudgment { margin-top: 16px; padding: 16px; background: var(--warning-light); border-radius: 8px; border-left: 3px solid var(--warning); }
+  .misjudgment-label { font-size: 12px; font-weight: 600; color: var(--warning); margin-bottom: 4px; }
+  .misjudgment-text { font-size: 14px; color: #92400E; }
+  .map-section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+  .map-section h2 { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+  .map-canvas { width: 100%; min-height: 360px; position: relative; background: #F8FAFB; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; }
+  .node { position: absolute; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; min-width: 80px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .node:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+  .node-role { font-size: 11px; font-weight: 600; opacity: 0.8; margin-bottom: 2px; }
+  .node-name { font-size: 14px; font-weight: 600; }
+  .node-you { background: var(--accent-light); border: 2px solid var(--accent); color: var(--accent); }
+  .node-decision { background: var(--danger-light); border: 2px solid var(--danger); color: #991B1B; }
+  .node-influencer { background: var(--warning-light); border: 2px solid var(--warning); color: #92400E; }
+  .node-executor { background: var(--purple-light); border: 2px solid var(--purple); color: #5B21B6; }
+  .node-leverage { background: var(--success-light); border: 2px solid var(--success); color: #065F46; }
+  .map-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+  .map-line { stroke: #CBD5E1; stroke-width: 2; fill: none; }
+  .map-arrow { fill: #CBD5E1; }
+  .person-grid { display: grid; gap: 12px; margin-bottom: 24px; }
+  .person-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: all 0.2s; }
+  .person-card:hover { border-color: var(--accent); }
+  .person-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .person-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .person-name { font-size: 16px; font-weight: 600; }
+  .person-role-badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+  .person-detail { font-size: 13px; color: var(--text-secondary); margin-top: 8px; }
+  .person-detail strong { color: var(--text); }
+  .gap-indicator { margin-top: 12px; padding: 12px; background: var(--warning-light); border-radius: 6px; font-size: 13px; color: #92400E; }
+  .gap-indicator::before { content: '\26A1 '; }
+  .strategy-section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+  .strategy-section h2 { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+  .strategy-main { background: var(--accent-light); border: 1px solid #BFDBFE; border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+  .strategy-name { font-size: 16px; font-weight: 600; color: var(--accent); margin-bottom: 12px; }
+  .strategy-item { display: flex; gap: 8px; margin-bottom: 8px; font-size: 14px; }
+  .strategy-label { font-weight: 600; color: var(--text-secondary); min-width: 56px; flex-shrink: 0; }
+  .strategy-value { color: var(--text); }
+  .strategy-script { background: white; border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-top: 12px; font-size: 14px; font-style: italic; color: var(--text); line-height: 1.7; }
+  .strategy-backup { background: #F8FAFB; border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  .strategy-backup .strategy-name { color: var(--text-secondary); font-size: 14px; }
+  .dont-do { background: var(--danger-light); border: 1px solid #FECACA; border-radius: 10px; padding: 16px; }
+  .dont-do-title { font-size: 13px; font-weight: 600; color: var(--danger); margin-bottom: 4px; }
+  .dont-do-text { font-size: 14px; color: #991B1B; }
+  .follow-up { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+  .follow-up h2 { font-size: 18px; font-weight: 600; margin-bottom: 12px; }
+  .follow-up-date { font-size: 14px; color: var(--accent); font-weight: 600; margin-bottom: 8px; }
+  .follow-up-text { font-size: 14px; color: var(--text-secondary); }
+  @media (max-width: 640px) {
+    .container { padding: 16px; }
+    h1 { font-size: 22px; }
+    .person-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🗺️ 职场关系地图</h1>
+  <div class="subtitle">基于你的描述，帮你看清局势、找到突破口</div>
+  <div class="situation">
+    <div class="situation-label">你的困局</div>
+    <div class="situation-text" id="situation">推新审批流程，产品部领导用优先级框架压制协作意愿</div>
+    <div class="misjudgment" id="misjudgment">
+      <div class="misjudgment-label">关键误判</div>
+      <div class="misjudgment-text">你以为问题出在"方案不够好"，其实他根本没在评估方案——他在确认自己说了算。</div>
+    </div>
+  </div>
+  <div class="map-section">
+    <h2>局势图</h2>
+    <div class="map-canvas" id="mapCanvas">
+      <svg class="map-svg" id="mapSvg"></svg>
+    </div>
+  </div>
+  <div class="person-grid" id="personGrid"></div>
+  <div class="strategy-section">
+    <h2>策略</h2>
+    <div class="strategy-main">
+      <div class="strategy-name">🎯 私下铺路，公开借力</div>
+      <div class="strategy-item"><span class="strategy-label">做什么</span><span class="strategy-value">先找运维部私下对齐利益，让他们在下次会上主动提出配合需求</span></div>
+      <div class="strategy-item"><span class="strategy-label">找谁</span><span class="strategy-value">运维部对接人，不是产品部</span></div>
+      <div class="strategy-item"><span class="strategy-label">时机</span><span class="strategy-value">明天早上，在下次产品部会议之前</span></div>
+      <div class="strategy-item"><span class="strategy-label">说什么</span></div>
+      <div class="strategy-script">"新审批流程帮你们减少重复审批，你们只需要在节点A确认一次。我这边方案已经写好了，你看一眼，如果没问题下次会上你们提出来就行。"</div>
+      <div class="strategy-item"><span class="strategy-label">预期反应</span><span class="strategy-value">运维部会问"为什么让我们提"——你就说"因为你们是受益方，你们提最有说服力"</span></div>
+    </div>
+    <div class="strategy-backup">
+      <div class="strategy-name">备用：创造不可逆节点</div>
+      <div class="strategy-item"><span class="strategy-label">做什么</span><span class="strategy-value">如果私下铺路3天内没进展，设定"下周五前确认方向"的死线，关联到老板的月度汇报</span></div>
+    </div>
+    <div class="dont-do">
+      <div class="dont-do-title">⛔ 绝对不要做</div>
+      <div class="dont-do-text">不要在下次会议上直接反驳产品部领导的优先级框架——他准备好了，你赢不了。先升级到"谁来定义规则"的层面，而不是"规则本身对不对"。</div>
+    </div>
+  </div>
+  <div class="follow-up">
+    <h2>📅 复盘提醒</h2>
+    <div class="follow-up-date">14天后检查进展</div>
+    <div class="follow-up-text">两周后回顾：策略执行了吗？对方反应如何？局势图还准吗？如果情况有变，重新分析。</div>
+  </div>
+</div>
+<script>
+const nodes = [
+  { id: 'you', name: '你', role: '推动者', type: 'you', x: 50, y: 180 },
+  { id: 'decision', name: '产品部领导', role: '决策者', type: 'decision', x: 380, y: 60 },
+  { id: 'influencer', name: '产品部对接人', role: '影响者', type: 'influencer', x: 380, y: 300 },
+  { id: 'leverage', name: '运维部', role: '杠杆点', type: 'leverage', x: 680, y: 180 },
+];
+const edges = [
+  { from: 'you', to: 'decision', label: '推不动' },
+  { from: 'you', to: 'influencer', label: '间接沟通' },
+  { from: 'decision', to: 'influencer', label: '上下级' },
+  { from: 'influencer', to: 'leverage', label: '跨部门' },
+  { from: 'you', to: 'leverage', label: '突破口', style: 'dashed' },
+];
+const canvas = document.getElementById('mapCanvas');
+const svg = document.getElementById('mapSvg');
+function renderMap() {
+  const w = canvas.offsetWidth;
+  const h = canvas.offsetHeight || 360;
+  svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  edges.forEach(e => {
+    const from = nodes.find(n => n.id === e.from);
+    const to = nodes.find(n => n.id === e.to);
+    if (!from || !to) return;
+    const x1 = from.x * w / 800 + 40;
+    const y1 = from.y * h / 400 + 20;
+    const x2 = to.x * w / 800 + 40;
+    const y2 = to.y * h / 400 + 20;
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+    line.setAttribute('class', 'map-line');
+    if (e.style === 'dashed') line.setAttribute('stroke-dasharray', '6,4');
+    if (e.label === '突破口') { line.setAttribute('stroke', '#10B981'); line.setAttribute('stroke-width', '3'); }
+    svg.appendChild(line);
+    const midX = (x1 + x2) / 2;
+    const midY = (y1 + y2) / 2 - 8;
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', midX); text.setAttribute('y', midY);
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('font-size', '11');
+    text.setAttribute('fill', '#5A6270');
+    text.textContent = e.label;
+    svg.appendChild(text);
+  });
+  nodes.forEach(n => {
+    const div = document.createElement('div');
+    div.className = `node node-${n.type}`;
+    div.style.left = (n.x * w / 800) + 'px';
+    div.style.top = (n.y * h / 400) + 'px';
+    div.innerHTML = `<div class="node-role">${n.role}</div><div class="node-name">${n.name}</div>`;
+    canvas.appendChild(div);
+  });
+}
+const persons = [
+  { name: '产品部领导', role: '决策者', type: 'decision', yourView: '你觉得他是阻力', reality: '他在确认自己的权力——"优先级"只是他的工具，不是他的真实诉求', gap: '你缺的不是更好的方案，而是一个让他觉得"这事我定了"的台阶', signal: '权力姿态', signalColor: '#F59E0B' },
+  { name: '产品部对接人', role: '影响者', type: 'influencer', yourView: '你觉得他也在反对', reality: '他在等领导表态——领导不说话，他不敢动', gap: '他不是阻力，但你现在找他公开聊等于逼他选边', signal: '信息不对称', signalColor: '#3B82F6' },
+  { name: '运维部', role: '杠杆点', type: 'leverage', yourView: '你没注意到他们', reality: '新流程也影响他们，他们比产品部更急着优化', gap: '他们是突破口，但你还没跟他们沟通过', signal: '利益冲突（潜在推动）', signalColor: '#10B981' }
+];
+const grid = document.getElementById('personGrid');
+persons.forEach(p => {
+  const card = document.createElement('div');
+  card.className = 'person-card';
+  card.innerHTML = `<div class="person-header"><div class="person-icon" style="background:${p.signalColor}20;color:${p.signalColor}">${p.type === 'decision' ? '🔴' : p.type === 'influencer' ? '🟡' : '🟢'}</div><div><div class="person-name">${p.name}</div><span class="person-role-badge" style="background:${p.signalColor}20;color:${p.signalColor}">${p.role} · ${p.signal}</span></div></div><div class="person-detail"><strong>你的判断：</strong>${p.yourView}</div><div class="person-detail"><strong>实际情况：</strong>${p.reality}</div><div class="gap-indicator">${p.gap}</div>`;
+  grid.appendChild(card);
+});
+renderMap();
+window.addEventListener('resize', () => {
+  svg.innerHTML = '';
+  document.querySelectorAll('.node').forEach(n => n.remove());
+  renderMap();
+});
+</script>
+</body>
+</html>
