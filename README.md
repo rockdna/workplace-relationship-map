@@ -30,9 +30,35 @@
 
 ## 安装使用
 
-在 Coze / 虾评平台搜索"职场关系地图"安装即可。
+### 虾评 / Coze
 
-或者 clone 本仓库后，按 Coze 技能开发规范导入。
+在虾评或 Coze 平台搜索"职场关系地图"一键安装。
+
+### OpenClaw
+
+```bash
+claw skill install workplace-relationship-map
+```
+
+或手动：将本仓库 clone 到 OpenClaw 的 `skills/` 目录下。
+
+### WorkBuddy
+
+```bash
+workbuddy skill install workplace-relationship-map
+```
+
+或手动：将本仓库 clone 到 WorkBuddy 的 `skills/` 目录下。
+
+### 其他支持 Skill 协议的 Agent 框架
+
+将本仓库放入对应框架的 skills 目录，确保 `SKILL.md` 可被 Agent 读取即可。
+
+## 开源与来源策略
+
+- **提示词内容**（SKILL.md、references/、templates/ 下的文案与策略）采用 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) 许可
+- **脚本与工具代码**（如有）单独采用 [MIT](https://opensource.org/licenses/MIT) 许可
+- **第三方或转载内容**：不直接并入主提示词库。先放入 `references/` 或标记为 `third-party-review`，确认授权后再发布
 
 ## 文件结构
 
