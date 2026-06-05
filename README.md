@@ -28,6 +28,22 @@
 - **急救话术**：明天上班就能用的话术模板
 - **交互式 HTML 报告**：可保存、可分享的分析报告
 
+## 效果预览
+
+以"老黄牛困境"为例——你被新总监系统性边缘化，旧老板观望：
+
+### 急救话术
+
+![话术指南](assets/demo-talk.png)
+
+### 局势图 + 力量对比
+
+![局势与力量分析](assets/demo-map.png)
+
+### 人物解码
+
+![人物解码](assets/demo-decode.png)
+
 ## 安装使用
 
 ### 虾评 / Coze
@@ -64,6 +80,10 @@ workbuddy skill install workplace-relationship-map
 
 ```
 ├── SKILL.md                          # 技能主文件（含启动协议 + 场景 + 策略）
+├── assets/                           # 效果演示图
+│   ├── demo-talk.png                 # 急救话术示例
+│   ├── demo-map.png                  # 局势图 + 力量对比示例
+│   └── demo-decode.png               # 人物解码示例
 ├── cases/                            # 测试案例
 │   ├── 2026-06-05-老黄牛困境.md       # 老黄牛案例全记录
 │   └── case-laohuangniu-demo.html     # 老黄牛案例 HTML 报告
