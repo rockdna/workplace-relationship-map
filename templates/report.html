@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{页面标题}}</title>
+<style>
+/* ═══════════════════════════════════════════════════
+   撞色杂志风 v2 · 社媒截图优化版
+   原则：大字号 · 高对比 · 每块可独立截图
+   ═══════════════════════════════════════════════════ */
+:root{
+  --ink:#0A0A0A;--paper:#FAFAF8;--white:#FFFFFF;
+  --ikb:#002FA7;--ikb-deep:#001A5C;
+  --orange:#E8590C;--orange-bg:#FFF4E6;
+  --purple:#2D1B69;--purple-light:#F3F0FF;
+  --amber:#E8923C;--amber-bg:#FFF8EC;
+  --rose:#D6336C;--rose-bg:#FFF0F3;
+  --teal:#0B6E6E;--teal-bg:#E8F5F5;
+  --t1:#0A0A0A;--t2:#3D3D3D;--t3:#6B6B6B;
+  --border:#D5D5D5;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:"PingFang SC","Hiragino Sans GB","Noto Serif SC","Source Han Serif SC","Microsoft YaHei",-apple-system,sans-serif;
+  background:var(--paper);color:var(--ink);
+  font-size:18px;line-height:1.85;letter-spacing:.02em;
+  -webkit-font-smoothing:antialiased;
+}
+.container{max-width:820px;margin:0 auto;overflow:hidden}
+
+/* ── Details/Summary ── */
+details{display:block}
+details summary{list-style:none;cursor:pointer;user-select:none;transition:background .15s}
+details summary::-webkit-details-marker{display:none}
+details summary::marker{display:none;content:""}
+.fold-btn{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:8px 16px;flex-shrink:0;font-size:14px;font-weight:700;
+  border-radius:20px;white-space:nowrap;letter-spacing:.03em;
+  transition:all .2s;cursor:pointer;
+}
+.fold-btn::before{content:"展开 ▾"}
+details[open]>summary .fold-btn::before{content:"收起 ▴"}
+details[open]>summary .fold-btn{transform:none}
+
+/* ═══ 1. 标题区 · 纯黑大字封面 ═══ */
+.header{
+  background:var(--ink);color:var(--white);
+  padding:72px 36px 48px;position:relative;
+}
+.header::before{
+  content:"";position:absolute;left:0;top:0;right:0;height:6px;
+  background:linear-gradient(90deg,var(--ikb) 0%,var(--amber) 50%,var(--rose) 100%);
+}
+.header h1{font-size:42px;font-weight:900;letter-spacing:.03em;margin-bottom:20px;line-height:1.25}
+.header .subtitle{font-size:19px;color:rgba(255,255,255,.7);font-weight:400;max-width:640px;line-height:1.7}
+.header .meta-badges{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
+.header .badge{
+  font-size:14px;font-weight:600;padding:7px 18px;
+  border:1.5px solid rgba(255,255,255,.15);color:rgba(255,255,255,.6);
+  display:inline-flex;align-items:center;gap:6px;border-radius:4px;
+}
+.header .badge.accent{background:var(--ikb);border-color:var(--ikb);color:#fff}
+
+/* ═══ 2. 心法 · 黑底金句卡 ═══ */
+.xinfa-card{
+  background:var(--ink);color:#F1F5F9;
+  padding:56px 36px 56px 42px;border-left:6px solid var(--ikb);
+  position:relative;
+}
+.xinfa-card .xf-quote-mark{
+  position:absolute;left:20px;top:8px;
+  font-size:120px;font-weight:900;color:rgba(255,255,255,.06);
+  font-family:Georgia,serif;line-height:1;
+}
+.xinfa-card .xf-tag{
+  font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--amber);margin-bottom:24px;position:relative;z-index:1;
+}
+.xinfa-card .xf-quote{
+  font-size:24px;line-height:2.0;letter-spacing:.03em;font-weight:400;color:#E8E8E8;
+  position:relative;z-index:1;
+}
+.xinfa-card .xf-source{font-size:15px;color:rgba(255,255,255,.35);margin-top:24px}
+
+/* ═══ 3. 困局诊断 · 克莱因蓝整版 ═══ */
+.sec-diagnosis{background:var(--ikb);color:var(--white);padding:52px 36px}
+.sec-diagnosis .sec-head{
+  font-size:15px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:rgba(255,255,255,.5);margin-bottom:28px;
+}
+.sec-diagnosis .sec-head .num{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:32px;height:32px;background:rgba(255,255,255,.1);border-radius:6px;
+  font-size:14px;margin-right:10px;
+}
+.diag-label{
+  display:inline-block;font-size:14px;font-weight:700;letter-spacing:.08em;
+  color:#fff;background:rgba(255,255,255,.12);padding:7px 18px;margin-bottom:24px;border-radius:4px;
+}
+.diag-title{font-size:26px;font-weight:900;margin-bottom:24px;line-height:1.45}
+.diag-text{font-size:18px;color:rgba(255,255,255,.88);line-height:1.9}
+.alt-perspective{
+  margin-top:28px;padding:24px 28px;
+  background:rgba(255,255,255,.06);border-left:4px solid var(--amber);border-radius:0 8px 8px 0;
+}
+.alt-perspective .alt-label{font-size:14px;font-weight:700;color:var(--amber);margin-bottom:10px}
+.alt-perspective .alt-text{font-size:17px;color:rgba(255,255,255,.8);line-height:1.85}
+
+/* ═══ 4. 关系解码 · 暖白底撞色卡 ═══ */
+.sec-relations{background:var(--orange-bg);padding:52px 36px}
+.sec-relations .sec-head{
+  font-size:15px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--orange);margin-bottom:28px;
+}
+.sec-relations .sec-head .num{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:32px;height:32px;background:var(--orange);color:#fff;border-radius:6px;
+  font-size:14px;margin-right:10px;
+}
+.rel-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.rel-card{border:none;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.rel-card:nth-child(1){background:var(--ikb);color:#fff}
+.rel-card:nth-child(2){background:var(--teal);color:#fff}
+.rel-card:nth-child(3){background:var(--orange);color:#fff}
+.rel-card:nth-child(n+4){background:#fff;color:var(--ink)}
+.rel-card summary.rel-head{padding:20px 22px;display:flex;align-items:flex-start;gap:14px}
+.rel-card summary.rel-head::before{
+  content:"";flex-shrink:0;width:44px;height:44px;
+  background:rgba(255,255,255,.12);border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:700;
+}
+.rel-card:nth-child(n+4) summary.rel-head::before{background:var(--ikb);color:#fff}
+.rel-card.avatar-sq summary.rel-head::before{content:"⬡"}
+.rel-card.avatar-di summary.rel-head::before{content:"◈"}
+.rel-card.avatar-ci summary.rel-head::before{content:"◎"}
+.rel-card .rel-head-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.rel-card .rel-name{font-size:20px;font-weight:800;line-height:1.3}
+.rel-card:nth-child(n+4) .rel-name{color:var(--ink)}
+.rel-card .rel-hint{font-size:14px;opacity:.7;line-height:1.5}
+.rel-card:nth-child(n+4) .rel-hint{color:var(--t3);opacity:1}
+.rel-card .fold-btn{
+  align-self:center;
+  background:rgba(255,255,255,.12);color:rgba(255,255,255,.8);
+}
+.rel-card:nth-child(n+4) .fold-btn{background:var(--purple-light);color:var(--purple)}
+.rel-card summary.rel-head:hover{filter:brightness(1.08)}
+.rel-card .rel-body{padding:0 22px 22px;display:flex;flex-direction:column;gap:14px}
+.rel-card .rel-row{display:flex;gap:12px;font-size:15px;line-height:1.7;align-items:flex-start}
+.rel-card .rel-icon{flex-shrink:0;font-size:16px;width:22px;text-align:center}
+.rel-card .rel-label{
+  flex-shrink:0;font-size:13px;font-weight:700;letter-spacing:.04em;
+  text-transform:uppercase;opacity:.65;min-width:40px;padding-top:2px;
+}
+.rel-card:nth-child(n+4) .rel-label{color:var(--t3);opacity:1}
+.rel-card .rel-val{opacity:.9}
+.rel-card:nth-child(n+4) .rel-val{color:var(--t2);opacity:1}
+.rel-card .rel-leverage{
+  background:rgba(255,255,255,.1);padding:14px 16px;font-weight:700;font-size:15px;
+  border-radius:8px;line-height:1.65;
+}
+.rel-card:nth-child(n+4) .rel-leverage{background:var(--orange-bg);color:var(--orange)}
+@media(max-width:500px){.rel-grid{grid-template-columns:1fr}}
+
+/* ═══ 5. 权力结构 · 纵向流信息图 ═══ */
+.sec-power{background:var(--purple);color:#E2D9F3;padding:52px 36px}
+.sec-power .sec-head{
+  font-size:15px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:rgba(255,255,255,.5);margin-bottom:28px;
+}
+.sec-power .sec-head .num{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:32px;height:32px;background:rgba(255,255,255,.1);color:#E2D9F3;border-radius:6px;
+  font-size:14px;margin-right:10px;
+}
+/* 纵向流布局 */
+.power-flow{display:flex;flex-direction:column;align-items:center;gap:0;padding:16px 0}
+.pf-node{
+  padding:18px 28px;border-radius:14px;text-align:center;min-width:120px;
+  border:2px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);
+}
+.pf-node .pf-name{font-size:22px;font-weight:800;color:#fff}
+.pf-node .pf-desc{font-size:14px;color:rgba(255,255,255,.5);margin-top:6px;line-height:1.5}
+.pf-node.pf-me{
+  border-color:var(--amber);background:rgba(232,146,60,.15);
+  box-shadow:0 0 0 8px rgba(232,146,60,.08);
+}
+.pf-node.pf-me .pf-name{color:var(--amber);font-size:24px}
+/* 纵向箭头（上→下） */
+.pf-arrow-down{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  padding:10px 0;color:var(--amber);font-size:15px;font-weight:700;letter-spacing:.03em;
+}
+.pf-arrow-down::after{
+  content:"";width:0;height:0;
+  border:7px solid transparent;border-top:10px solid var(--amber);
+}
+.pf-arrow-down .pf-line{width:3px;height:20px;background:var(--amber);border-radius:2px}
+/* 横向行 */
+.pf-row{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  flex-wrap:nowrap;width:100%;max-width:700px;
+}
+.pf-arrow-right{
+  display:flex;align-items:center;gap:6px;color:var(--amber);
+  font-size:14px;font-weight:700;white-space:nowrap;flex-shrink:0;
+}
+.pf-arrow-right::before{content:"";width:24px;height:3px;background:var(--amber);border-radius:2px}
+.pf-arrow-right::after{content:"";border:6px solid transparent;border-left:9px solid var(--amber)}
+.pf-arrow-left{
+  display:flex;align-items:center;gap:6px;color:var(--amber);
+  font-size:14px;font-weight:700;white-space:nowrap;flex-shrink:0;
+}
+.pf-arrow-left::before{content:"";border:6px solid transparent;border-right:9px solid var(--amber)}
+.pf-arrow-left::after{content:"";width:24px;height:3px;background:var(--amber);border-radius:2px}
+/* 横向行中的节点缩小 */
+.pf-row .pf-node{padding:14px 20px;min-width:90px}
+.pf-row .pf-node .pf-name{font-size:18px}
+.pf-row .pf-node.pf-me .pf-name{font-size:20px}
+@media(max-width:600px){
+  .pf-row{flex-direction:column;gap:6px}
+  .pf-arrow-right,.pf-arrow-left{flex-direction:column}
+  .pf-arrow-right::before{width:3px;height:16px}
+  .pf-arrow-right::after{border:6px solid transparent;border-top:9px solid var(--amber);border-left:none}
+  .pf-arrow-left::before{border:6px solid transparent;border-bottom:9px solid var(--amber);border-right:none}
+  .pf-arrow-left::after{width:3px;height:16px}
+}
+
+/* ═══ 6. 策略 · 浅紫白交替 ═══ */
+.sec-strategy{background:var(--purple-light);padding:52px 36px}
+.sec-strategy .sec-head{
+  font-size:15px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--purple);margin-bottom:28px;
+}
+.sec-strategy .sec-head .num{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:32px;height:32px;background:var(--purple);color:#fff;border-radius:6px;
+  font-size:14px;margin-right:10px;
+}
+.strategy-block{margin-bottom:16px;border:none;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(45,27,105,.06)}
+.strategy-block summary.st-summary{padding:22px 26px;display:flex;align-items:center;gap:16px}
+.strategy-block .st-num-big{
+  font-size:44px;font-weight:900;color:var(--purple);opacity:.12;flex-shrink:0;line-height:1;min-width:48px;
+  font-family:"SF Mono","JetBrains Mono","Consolas",monospace;
+}
+.strategy-block .st-summary-text{flex:1}
+.strategy-block .st-summary-text .st-name{font-size:20px;font-weight:800;letter-spacing:.03em}
+.strategy-block .st-summary-text .st-source{font-size:14px;color:var(--t3);font-style:italic;margin-top:4px}
+.strategy-block .fold-btn{background:var(--purple-light);color:var(--purple);align-self:center}
+.strategy-block summary.st-summary:hover{background:rgba(45,27,105,.02)}
+.strategy-block .st-body{padding:0 26px 26px}
+.strategy-duo{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}
+.strategy-info{display:flex;flex-direction:column;gap:14px}
+.strategy-info .si-row{display:flex;gap:12px;align-items:flex-start;border-top:1px solid var(--border);padding-top:14px}
+.strategy-info .si-icon{flex-shrink:0;font-size:17px;width:24px;text-align:center}
+.strategy-info .si-label{flex-shrink:0;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--t3);min-width:48px;padding-top:2px}
+.strategy-info .si-content{font-size:16px;color:var(--t2);line-height:1.75}
+.strategy-script{
+  background:var(--purple);color:#fff;padding:22px;border-radius:10px;
+  display:flex;flex-direction:column;gap:14px;align-self:start;
+}
+.strategy-script .ss-label{font-size:14px;font-weight:700;color:var(--amber);letter-spacing:.04em}
+.strategy-script .ss-text{font-size:17px;line-height:1.95;color:#E8E2F5;white-space:pre-line}
+.followup{
+  margin-top:22px;padding:22px;background:#fff;border:1px solid var(--border);
+  border-left:4px solid var(--purple);border-radius:0 10px 10px 0;
+}
+.followup .fu-label{font-size:14px;font-weight:700;color:var(--purple);margin-bottom:14px}
+.followup .fu-options{list-style:none;display:flex;flex-direction:column;gap:10px}
+.followup .fu-options li{font-size:17px;padding:14px 0;line-height:1.6}
+.followup .fu-skip{font-size:14px;color:var(--t3);margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.followup .fu-round2{margin-top:14px;font-size:15px;color:var(--t3);line-height:1.8}
+@media(max-width:600px){.strategy-duo{grid-template-columns:1fr}}
+
+/* ═══ 7. 三件事 · 琥珀橙便签 ═══ */
+.sec-checklist{background:var(--amber);color:var(--ink);padding:52px 36px}
+.sec-checklist .sec-head{
+  font-size:15px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:rgba(0,0,0,.5);margin-bottom:28px;
+}
+.sec-checklist .sec-head .num{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:32px;height:32px;background:var(--ink);color:var(--amber);border-radius:6px;
+  font-size:14px;margin-right:10px;
+}
+.timeline{position:relative;padding-left:44px}
+.timeline::before{content:"";position:absolute;left:15px;top:10px;bottom:10px;width:3px;background:rgba(0,0,0,.12);border-radius:2px}
+.tl-item{position:relative;padding-bottom:36px;display:flex;gap:22px}
+.tl-item:last-child{padding-bottom:0}
+.tl-dot{
+  position:absolute;left:calc(-44px + 6px);top:2px;width:22px;height:22px;
+  border-radius:50%;background:var(--ink);
+  display:flex;align-items:center;justify-content:center;z-index:1;
+}
+.tl-dot .tl-num{font-size:11px;font-weight:900;color:var(--amber);line-height:1}
+.tl-title{font-size:20px;font-weight:800;margin-bottom:8px}
+.tl-desc{font-size:17px;color:rgba(0,0,0,.7);line-height:1.8;white-space:pre-line}
+
+/* ═══ 8. 危险区 · 玫红整版 ═══ */
+.danger-card{background:var(--rose);color:#fff;border:none;border-radius:0;overflow:hidden}
+.danger-card summary{padding:28px 36px;display:flex;align-items:center;gap:14px}
+.danger-card summary:hover{background:rgba(0,0,0,.04)}
+.danger-card .dc-title{font-size:24px;font-weight:800;color:#fff;letter-spacing:.03em;flex:1}
+.danger-card .fold-btn{background:rgba(255,255,255,.12);color:rgba(255,255,255,.8)}
+.danger-card .dc-body{padding:0 36px 32px}
+.danger-card .dc-text{font-size:18px;color:rgba(255,255,255,.92);line-height:1.9}
+
+/* ── 版本 ── */
+.ver-footer{
+  background:var(--ink);color:rgba(255,255,255,.2);
+  padding:28px 36px;font-size:14px;text-align:center;
+}
+
+/* ── 打印 ── */
+@media print{
+  body{background:#fff}
+  details[open]>:not(summary){display:block!important}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- ═══ 1. 标题区 ═══ -->
+<div class="header">
+  <h1>{{页面标题}}</h1>
+  <div class="subtitle">{{用户背景概述}}</div>
+  <div class="meta-badges">
+    <span class="badge accent">{{场景标签}}</span>
+    <span class="badge">👥 {{关键人数}}人</span>
+    <span class="badge">📋 v{{版本号}}</span>
+  </div>
+</div>
+
+<!-- ═══ 2. 心法 ═══ -->
+<div class="xinfa-card">
+  <div class="xf-quote-mark">"</div>
+  <div class="xf-tag">{{心法标签}}</div>
+  <div class="xf-quote">"{{核心心法引用句}}"</div>
+  <div class="xf-source">—— {{来源}}</div>
+</div>
+
+<!-- ═══ 3. 困局诊断 ═══ -->
+<div class="sec-diagnosis">
+  <div class="sec-head"><span class="num">01</span> 困局诊断</div>
+  <div class="diag-label">核心矛盾</div>
+  <div class="diag-title">{{困局一句话定性}}</div>
+  <div class="diag-text">{{困局展开说明}}</div>
+  <div class="alt-perspective">
+    <div class="alt-label">🔍 换一个视角</div>
+    <div class="alt-text">{{换个视角文本}}</div>
+  </div>
+</div>
+
+<!-- ═══ 4. 关系解码 ═══ -->
+<div class="sec-relations">
+  <div class="sec-head"><span class="num">02</span> 关系解码</div>
+  <div class="rel-grid">
+{{RELATION_CARDS}}
+  </div>
+</div>
+
+<!-- ═══ 5. 权力结构 ═══ -->
+<div class="sec-power">
+  <div class="sec-head"><span class="num">03</span> 权力结构</div>
+  <div class="power-flow">
+{{TRI_ANCHOR_NODES}}
+  </div>
+</div>
+
+<!-- ═══ 6. 策略 ═══ -->
+<div class="sec-strategy">
+  <div class="sec-head"><span class="num">04</span> 策略组合</div>
+{{STRATEGY_BLOCKS}}
+</div>
+
+<!-- ═══ 7. 三件事 ═══ -->
+<div class="sec-checklist">
+  <div class="sec-head"><span class="num">05</span> 三件事清单</div>
+  <div class="timeline">
+{{TIMELINE_ITEMS}}
+  </div>
+</div>
+
+<!-- ═══ 8. 危险区 ═══ -->
+<details class="danger-card" open>
+  <summary>
+    <span class="dc-title">⛔ 绝对不要做</span>
+    <span class="fold-icon">▾</span>
+  </summary>
+  <div class="dc-body">
+    <div class="dc-text">{{危险动作}}</div>
+  </div>
+</details>
+
+<div class="ver-footer">职场关系地图 v{{版本号}} · 虾评平台</div>
+</div>
+</body>
+</html>
