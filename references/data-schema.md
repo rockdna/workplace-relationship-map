@@ -75,6 +75,7 @@
 | `strategies` | 1-3 条，每条必须含 `followup` |
 | `xingfa.tag` | 必须包含人名，如"反脆弱心法（塔勒布）" |
 | `xingfa.source` | 人名+书名，如"塔勒布《反脆弱》" |
+| `xingfa.quote` | 必须与 source 的哲学内核有真实关联，禁止通用鸡汤贴标签。当 source 为《黑神话：悟空》时，quote 必须从以下主题之一 authentically derive：执念、天命之问、金箍悖论、兵解、六根与五毒、佛魔同体、轮回之力。参考 `references/wukong-xingfa-guide.md` |
 | `diagnosis.alt_view` | 以"可能没注意到的是…"或"另一个角度是…"开头 |
 | `strategies[].name` | 关系操作名（如"先拿筹码再谈底线"），禁止哲学标签（如"杠铃策略"） |
 

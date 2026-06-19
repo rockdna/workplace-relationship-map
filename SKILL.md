@@ -387,6 +387,7 @@ description: |
    - `relations` 每人 4 字段完整（name/surface/motive/leverage）
    - `strategies` 每条都有 `followup`（option_a/option_b/round2_a/round2_b）
    - `xingfa.source` 含人名+书名
+   - `xingfa.quote` 与 source 哲学内核有真实关联（不是通用鸡汤贴标签；source 为《黑神话：悟空》时参考 `references/wukong-xingfa-guide.md`）
    - `diagnosis.alt_view` 以"可能没注意到的是…"开头
    - 无哲学标签当策略名（禁止"杠铃策略""身份剥离"等）
 

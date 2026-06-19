@@ -233,11 +233,12 @@ def build(data: dict) -> str:
     power = data.get('power_structure', [])
     tri_parts = []
     if power:
-        # 分类边：指向我的、不指向我的
+        # 分类边：指向我的、从我出发的、不涉及我的
         to_me = [p for p in power if p.get('to', '') == '我']
+        from_me = [p for p in power if p.get('from', '') == '我' and p.get('to', '') != '我']
         not_to_me = [p for p in power if p.get('to', '') != '我' and p.get('from', '') != '我']
 
-        # 第一步：不指向我的边 = 上层关系，纵向展示
+        # 第一步：不涉及我的边 = 上层关系，纵向展示
         for i, p in enumerate(not_to_me):
             f_name = p.get('from', '')
             t_name = p.get('to', '')
@@ -247,28 +248,30 @@ def build(data: dict) -> str:
             # 下方节点（不指向我的边的 target）
             tri_parts.append('<div class="pf-node"><div class="pf-name">{}</div></div>'.format(t_name))
 
-        # 第二步：横向行 - 指向我的边
+        # 第二步：横向行 - 指向我的边（他人 → 我）
         if to_me:
             tri_parts.append('<div class="pf-row">')
             for i, p in enumerate(to_me):
                 f_name = p.get('from', '')
                 desc = p.get('desc', '')
-                # 边标签完整显示，不截断
-                short_desc = desc
-                if i == 0:
-                    # 左侧节点 → 我
-                    tri_parts.append(TRI_ANCHOR_NODE_ROW.format(
-                        name=f_name, extra_class='', arrow_dir='right', edge_label=short_desc
-                    ))
-                else:
-                    # 我 ← 右侧节点
+                if i > 0:
                     tri_parts.append(TRI_ANCHOR_NODE_ME)
-                    tri_parts.append(TRI_ANCHOR_NODE_ROW.format(
-                        name=f_name, extra_class='', arrow_dir='left', edge_label=short_desc
-                    ))
-            # 如果只有一条指向我的边，补上"我"节点
-            if len(to_me) == 1:
-                tri_parts.append(TRI_ANCHOR_NODE_ME)
+                tri_parts.append(TRI_ANCHOR_NODE_ROW.format(
+                    name=f_name, extra_class='', arrow_dir='right', edge_label=desc
+                ))
+            tri_parts.append(TRI_ANCHOR_NODE_ME)
+            tri_parts.append('</div>')
+
+        # 第三步：横向行 - 从我出发的边（我 → 他人）
+        if from_me:
+            tri_parts.append('<div class="pf-row" style="margin-top:16px">')
+            tri_parts.append(TRI_ANCHOR_NODE_ME)
+            for i, p in enumerate(from_me):
+                t_name = p.get('to', '')
+                desc = p.get('desc', '')
+                # 先箭头后节点（我 → 他人）
+                tri_parts.append('      <div class="pf-arrow-right">{}</div>'.format(desc))
+                tri_parts.append('      <div class="pf-node"><div class="pf-name">{}</div></div>'.format(t_name))
             tri_parts.append('</div>')
 
     html = html.replace('{{TRI_ANCHOR_NODES}}', '\n'.join(tri_parts))
