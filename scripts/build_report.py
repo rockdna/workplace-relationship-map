@@ -1,10 +1,18 @@
 #!/usr/bin/env python3
-"""职场关系地图 HTML 报告生成器 v2.5.0
+"""职场关系地图 HTML 报告生成器 v2.4.5
 
 用法: python3 scripts/build_report.py <data.json> [output.html]
 
-v2.5.0 变更:
-- 内置阿德勒课题分离策略自动生成
+v2.4.5 变更:
+- 阿德勒策略场景路由：4 个子策略（设立边界/不接情绪/不卷入/角色重置）
+- 行为识别：动作子类型细分（拖延/模糊/挡卡/施压/越界/庇护）
+- 话术骨架差异化：每种动作类型对应独立话术模板
+- 策略名差异化：不再统一叫"课题分离：把别人的课题还回去"
+- 修复"施压"中的"压"被 blocker 误命中的优先级问题
+
+v2.4.4 变更:
+- 用户自称归一化：_is_me() 兼容"你"/"自己"/"本人"
+- 权力结构"我"节点不再重复
 
 v2.4.0 变更:
 - 权力结构: 线性链 → 独立流向图（每条关系一行 From→desc→To）
@@ -122,64 +130,290 @@ TIMELINE_ITEM = '''      <div class="tl-item">
 
 
 # ═══════════════════════════════════════════════════════════
-# 阿德勒心理学策略生成 (v2.5.0)
+# 阿德勒心理学策略生成 (v2.4.5)
 # ═══════════════════════════════════════════════════════════
 
-def generate_adler_strategy(relations: list, power_structure: list, diagnosis: dict) -> dict:
-    """基于关系数据自动生成阿德勒课题分离策略"""
-    blockers, pressurers, protectors = [], [], []
+# 行为识别关键词（v2.4.5 优化：先 pressurer 后 blocker，避免"施压"中的"压"被 blocker 误命中）
+_BLOCKER_KWS = {
+    'drag':   ['拖延', '再等等', '再看看', '再调调', '观望', '敷衍', '打太极', '不拒不接', '不接', '缓一缓'],
+    'fuzzy':  ['需求模糊', '反复改', '需求反复', '还没定', '没说', '没定', '还在调', '反复变', '改需求', '漂'],
+    'block':  ['挡', '卡', '拦', '堵', '不配合', '甩', '不推', '推不动', '踢皮球', '甩锅'],
+}
+_PRESSURER_KWS = {
+    'push':     ['施压', '催', '逼进度', '追进度', '追你', '急', '逼'],
+    'overstep': ['越界', '替你', '替你做主', '替你跟', '替你对接', '指手画脚', '直接找', '直接对接', '绕过'],
+}
+_PROTECTOR_KWS = ['庇护', '包庇', '纵容', '袒护', '靠山', '保护伞', '罩着']
 
+def _classify_action(desc: str) -> str:
+    """从 desc 文本识别行为子类型（顺序：protector > pressurer > blocker）"""
+    for kw in _PROTECTOR_KWS:
+        if kw in desc:
+            return 'protector'
+    for sub, kws in _PRESSURER_KWS.items():
+        if any(kw in desc for kw in kws):
+            return f'pressurer:{sub}'
+    for sub, kws in _BLOCKER_KWS.items():
+        if any(kw in desc for kw in kws):
+            return f'blocker:{sub}'
+    return 'unknown'
+
+
+def _scan_edges(power_structure: list) -> dict:
+    """扫描 power_structure 边，按行为类型分组"""
+    groups = {
+        'blocker_drag': [],    # 拖延/观望
+        'blocker_fuzzy': [],   # 模糊/反复
+        'blocker_block': [],   # 挡/卡
+        'pressurer_push': [],  # 施压
+        'pressurer_overstep': [],  # 越界
+        'protector': [],       # 庇护
+        'unknown': [],         # 未识别（指向我的边）
+    }
     for p in power_structure:
         desc = p.get('desc', '')
         to_who, from_who = p.get('to', ''), p.get('from', '')
 
+        kind = _classify_action(desc)
         if _is_me(to_who):
-            if any(kw in desc for kw in ['拖', '等', '慢', '不拒', '太极', '推']):
-                blockers.append(from_who)
-            if any(kw in desc for kw in ['施压', '追', '催', '逼', '急']):
-                pressurers.append(from_who)
+            # 指向我的边 → blocker / pressurer
+            if kind.startswith('blocker:'):
+                groups[f'blocker_{kind.split(":", 1)[1]}'].append((from_who, desc))
+            elif kind.startswith('pressurer:'):
+                groups[f'pressurer_{kind.split(":", 1)[1]}'].append((from_who, desc))
+            else:
+                groups['unknown'].append((from_who, desc))
         elif not _is_me(to_who) and not _is_me(from_who):
-            if any(kw in desc for kw in ['庇护', '保', '护', '罩']):
-                protectors.append((from_who, to_who))
+            if kind == 'protector':
+                groups['protector'].append((from_who, to_who, desc))
+    return groups
 
-    parts = []
-    if blockers:
-        parts.append(f"{'、'.join(blockers)}的拖延——ta在惯性中选择了不动，拖延成本低于你的放弃成本。这是ta的课题，不是你的能力问题。")
-    if pressurers:
-        parts.append(f"{'、'.join(pressurers)}的焦虑——ta向上交付的压力。追你进度而不是帮你清障，因为碰元老比催你风险大。这是ta的课题。")
-    if protectors:
-        items = [f"{f}对{t}的庇护" for f, t in protectors]
-        parts.append(f"{'、'.join(items)}——这是他们之间的课题，与你无关。你的战场不在这里。")
-    if not parts:
-        parts.append("厘清组织中的课题边界：哪些是你的结果，哪些是别人的情绪、惯性与权力博弈。把别人的课题还回去，你的课题才能浮出水面。")
 
-    analysis = '；'.join(parts)
-    b_name = blockers[0] if blockers else '对方'
-    p_name = pressurers[0] if pressurers else '上级'
+def _adler_boundary(groups: dict) -> dict:
+    """子策略 A：拖延/模糊/挡卡 → 课题分离·设立边界"""
+    blocker_actors = []
+    blocker_descs = []
+    for key, label in [('blocker_drag', '拖延'), ('blocker_fuzzy', '模糊'), ('blocker_block', '挡卡')]:
+        for actor, desc in groups.get(key, []):
+            blocker_actors.append(actor)
+            blocker_descs.append(f"{actor}的「{desc}」——ta的课题是用{label}换安全，{label}成本低于'说不'的成本")
 
-    script_b = (
-        f"对{b_name}：「我理解您需要时间评估。我先把方案整理出来，周X前给到您。"
-        f"如果届时没有反馈，我就按草案先推进一版，您看可以吗？」——无限等待→有限等待，设立时间边界。"
-    )
-    script_p = (
-        f"对{p_name}：「目前的卡点在XX环节需要{b_name}确认。我已在推进，预计周X前有明确结论。"
-        f"如果需要加快，建议您和{b_name}直接聊一下优先级。」——不接情绪，只接事实。"
-    )
+    # 加上配套的施压方描述
+    press_descs = []
+    for key, label in [('pressurer_push', '催你进度'), ('pressurer_overstep', '越界替你')]:
+        for actor, desc in groups.get(key, []):
+            press_descs.append(f"{actor}的「{desc}」——ta的课题是{label}，碰别人比碰你风险大")
+
+    analysis_parts = blocker_descs + press_descs
+    if analysis_parts:
+        analysis = '；'.join(analysis_parts)
+    else:
+        analysis = "对方用拖延/模糊换安全——这是ta的课题，不是你的能力问题"
+
+    # 选第一个 blocker 作为话术对象
+    primary_actor = None
+    primary_sub = None
+    for sub in ('blocker_drag', 'blocker_fuzzy', 'blocker_block'):
+        if groups.get(sub):
+            primary_actor = groups[sub][0][0]
+            primary_sub = sub
+            break
+    if not primary_actor:
+        primary_actor = '对方'
+        primary_sub = 'blocker_drag'
+
+    # 按行为子类型选话术骨架
+    scripts = {
+        'blocker_drag': (
+            f"对{primary_actor}：「我理解您需要时间评估。我先把方案整理出来，周X前给到您。"
+            f"如果届时没有反馈，我就按草案先推进一版，您看可以吗？」——把'无限等待'变成'有限等待'。"
+        ),
+        'blocker_fuzzy': (
+            f"对{primary_actor}：「我理解需求还在调。我把当前理解写到文档里，周X前给您确认。"
+            f"届时未回我按此推进，有调整随时提。」——把'口头模糊'变成'有据可查的推进'。"
+        ),
+        'blocker_block': (
+            f"对{primary_actor}：「我看到流程卡在XX环节。我先把能动的部分推进，"
+            f"卡点处我写一版方案给您过目，麻烦您周X前给我反馈。」——把'卡住不动'变成'分段推进'。"
+        ),
+    }
+    script_b = scripts[primary_sub]
+
+    # 配套：pressurer 应对
+    script_p = ""
+    p_name = ""
+    if groups.get('pressurer_push') or groups.get('pressurer_overstep'):
+        p_name = (groups.get('pressurer_push') or groups.get('pressurer_overstep'))[0][0]
+        if groups.get('pressurer_push'):
+            script_p = (
+                f"\n\n对{p_name}：「目前卡在XX需要{primary_actor}确认。我已在推进，预计周X前有结论。"
+                f"如需加快，建议您和{primary_actor}直接对一下优先级。」——不接情绪，只接事实。"
+            )
+        else:
+            script_p = (
+                f"\n\n对{p_name}：「这块我接得住，给我X时间推进。完成后我会主动同步，"
+                f"不劳您替我跟。」——把'替我做主'变成'我接得住'。"
+            )
+
+    target_parts = [f"{primary_actor}——把对方课题（{('拖延/模糊/挡卡'.split('/')[(['blocker_drag','blocker_fuzzy','blocker_block'].index(primary_sub))])}）还回去"]
+    if p_name:
+        target_parts.append(f"{p_name}——不接情绪")
+    target = '；'.join(target_parts)
+
+    timing_parts = []
+    if primary_sub == 'blocker_drag':
+        timing_parts.append(f"下次{primary_actor}说「再等等」「再看看」的当场")
+    elif primary_sub == 'blocker_fuzzy':
+        timing_parts.append(f"下次{primary_actor}说「再调调」「还没定」的当场")
+    else:
+        timing_parts.append(f"下次{primary_actor}把球踢回来的当场")
+    if p_name:
+        timing_parts.append(f"下次{p_name}在会议上点你名的当场")
+    timing = '；'.join(timing_parts)
 
     return {
-        "name": "课题分离：把别人的课题还回去",
+        "name": "课题分离·设立边界",
         "source": "阿尔弗雷德·阿德勒《被讨厌的勇气》",
         "action": analysis,
-        "target": f"{b_name}——设立时间边界；{p_name}——设立情绪边界",
-        "timing": f"下次{b_name}说「再等等」的当场",
-        "script": f"{script_b}\n\n{script_p}",
+        "target": target,
+        "timing": timing,
+        "script": script_b + script_p,
         "followup": {
-            "option_a": f"如果{b_name}拒绝设立时间边界？",
-            "option_b": f"如果{p_name}继续越界施压？",
-            "round2_a": f"课题分离不是对抗。追问：「那您建议的时间节点是什么？」把球踢回去——设定时间是ta的课题。ta不给时间，你按自己节奏推进。",
-            "round2_b": f"{p_name}的焦虑是ta的课题。回应：「我理解紧迫感。目前进度XX，下一步XX。如果不够快，一起看哪些环节可以简化。」不接情绪，只接事实。"
+            "option_a": f"如果{primary_actor}拒绝定时间节点？",
+            "option_b": f"如果{p_name or '上级'}继续越界施压？",
+            "round2_a": "课题分离不是对抗。追问：「那您建议的时间节点是什么？」把球踢回去——设定时间是ta的课题。ta不给时间，你按自己节奏推进。",
+            "round2_b": f"{p_name or '上级'}的焦虑是ta的课题。回应：「我理解紧迫感。目前进度XX，下一步XX。如果不够快，一起看哪些环节可以简化。」不接情绪，只接事实。"
         }
     }
+
+
+def _adler_emotion(groups: dict) -> dict:
+    """子策略 B：施压/越界 → 课题分离·不接情绪"""
+    p_actor = None
+    p_sub = None
+    for sub in ('pressurer_push', 'pressurer_overstep'):
+        if groups.get(sub):
+            p_actor = groups[sub][0][0]
+            p_sub = sub
+            break
+
+    push_descs = [f"{a}的「{d}」" for a, d in groups.get('pressurer_push', [])]
+    over_descs = [f"{a}的「{d}」" for a, d in groups.get('pressurer_overstep', [])]
+
+    if push_descs:
+        analysis = '；'.join(push_descs) + f"——ta的课题是向上交付的压力。追你进度而不帮你清障，因为碰别人比催你风险大。"
+    elif over_descs:
+        analysis = '；'.join(over_descs) + f"——ta的课题是'替你做主'带来的控制感。你接得住，是ta的焦虑；你接不住，也是ta的课题。"
+    else:
+        analysis = "对方的情绪是ta的课题，不是你的责任。"
+
+    if p_sub == 'pressurer_push':
+        script = (
+            f"对{p_actor}：「我理解紧迫感。目前进度XX，下一步XX，需要相关方确认才能继续。"
+            f"是否方便您直接和对方对一下优先级？我同步给您结论。」——不接情绪，只接事实，把协调成本推回上游。"
+        )
+        timing = f"下次{p_actor}在群里@你、当面追问、当众施压的当场"
+    else:  # overstep
+        script = (
+            f"对{p_actor}：「这块我接得住，按我自己的节奏推进。有进展我主动同步，"
+            f"不劳您替我跟。」——把'替我做主'变成'我接得住，你放手'。"
+        )
+        timing = f"下次{p_actor}绕过你直接对接你的下属/同事/客户的当场"
+
+    return {
+        "name": "课题分离·不接情绪",
+        "source": "阿尔弗雷德·阿德勒《被讨厌的勇气》",
+        "action": analysis,
+        "target": f"{p_actor}——不接情绪，把协调/推进成本推回上游",
+        "timing": timing,
+        "script": script,
+        "followup": {
+            "option_a": f"如果{p_actor}当众给你难堪？",
+            "option_b": f"如果{p_actor}越级指挥你的下属？",
+            "round2_a": f"当场不接招。会后单独找{p_actor}：「刚才会议上的事我理解您是想推进，但我有自己的节奏。咱们对一下怎么协作更顺。」——把冲突从公开场拉回私下。",
+            "round2_b": f"明确边界：「XX事归我管，对接请走我这边。」不卑不亢，{p_actor}知道你有边界，下次自然走流程。"
+        }
+    }
+
+
+def _adler_uninvolved(groups: dict) -> dict:
+    """子策略 C：派系/庇护 → 课题分离·不卷入"""
+    items = []
+    for f, t, d in groups.get('protector', []):
+        items.append(f"{f}对{t}的「{d}」")
+    analysis = '；'.join(items) + "——这是他们之间的课题。你的战场不在这里。"
+
+    if groups.get('protector'):
+        f0, t0, d0 = groups['protector'][0]
+    else:
+        f0, t0, d0 = '派系A', '派系B', '互为庇护'
+
+    return {
+        "name": "课题分离·不卷入",
+        "source": "阿尔弗雷德·阿德勒《被讨厌的勇气》",
+        "action": analysis,
+        "target": f"不主动介入{f0}与{t0}的博弈，专注自己的事",
+        "timing": "下次有人拉你站队、传闲话、要你表忠心的当场",
+        "script": (
+            f"回应拉拢：「我理解组织里有自己的格局。我的关注点是把XX事推进好，"
+            f"{f0}和{t0}之间的事我先放一放。」——把'站队'变成'专注自己的课题'。"
+        ),
+        "followup": {
+            "option_a": f"如果{f0}明示要你表态？",
+            "option_b": f"如果同事传闲话逼你站队？",
+            "round2_a": f"中性回应：「我两边都不站，按事办事。」然后走开——表态不是你的课题，专注把事做好才是。",
+            "round2_b": "不接话：「这事我没参与过，不好评价。」把闲话挡回去——八卦是他们的课题，你的课题是把手上的活交出去。"
+        }
+    }
+
+
+def _adler_fallback(groups: dict) -> dict:
+    """子策略 D：无明显课题信号 → 课题分离·角色重置"""
+    unknown = groups.get('unknown', [])
+    if unknown:
+        actors = '、'.join(a for a, _ in unknown)
+        descs = '；'.join(f"{a}的「{d}」" for a, d in unknown)
+        analysis = f"{descs}——这些动作背后是ta自己的角色焦虑，不是你的边界问题。先看清，再分离。"
+    else:
+        analysis = "组织中每个人的动作背后都有一份'我的课题'。厘清哪些是你的结果、哪些是别人的情绪与惯性——把别人的课题还回去，你的课题才能浮出水面。"
+
+    return {
+        "name": "课题分离·角色重置",
+        "source": "阿尔弗雷德·阿德勒《被讨厌的勇气》",
+        "action": analysis,
+        "target": "每个相关方——看清ta的课题，再决定你的回应",
+        "timing": "下次感觉'好像都是我的事'的瞬间",
+        "script": (
+            "自问三件事：①这是谁的结果？（不是我的就还回去）②谁在为这个情绪买单？"
+            "（是ta自己）③我能做的最小动作是什么？（只做最小，把剩下的留给他们）"
+        ),
+        "followup": {
+            "option_a": "怎么判断'是不是我的课题'？",
+            "option_b": "分离之后对方不接茬怎么办？",
+            "round2_a": "阿德勒的判断标准很硬：'这件事的最终结果，由谁承担？'谁承担，谁就有课题决策权。不承担的人只有建议权，没有决策权。",
+            "round2_b": "课题分离后，剩下的是'不接茬'的沉默——这是对方的课题。ta不接茬不是你的失败，是ta还在自己的节奏里。你按自己的节奏推进即可。"
+        }
+    }
+
+
+def generate_adler_strategy(relations: list, power_structure: list, diagnosis: dict) -> dict:
+    """基于关系数据自动生成阿德勒课题分离策略（v2.4.5 场景路由版）
+
+    路由规则：
+    1. 指向我的边含「拖/等/慢/模糊/反复/挡/卡」 → 课题分离·设立边界
+    2. 指向我的边含「施压/催/越界/替」 → 课题分离·不接情绪
+    3. 第三方之间含「庇护/保/护/罩」 → 课题分离·不卷入
+    4. 其他 → 课题分离·角色重置（兜底）
+    """
+    groups = _scan_edges(power_structure)
+
+    if groups.get('blocker_drag') or groups.get('blocker_fuzzy') or groups.get('blocker_block'):
+        return _adler_boundary(groups)
+    if groups.get('pressurer_push') or groups.get('pressurer_overstep'):
+        return _adler_emotion(groups)
+    if groups.get('protector'):
+        return _adler_uninvolved(groups)
+    return _adler_fallback(groups)
 
 
 # ═══════════════════════════════════════════════════════════
@@ -196,7 +430,7 @@ def build(data: dict) -> str:
 
     # ── Header 简单占位符 ──
     html = html.replace('{{页面标题}}', meta.get('page_title', meta.get('case_title', '职场关系分析')))
-    html = html.replace('{{版本号}}', meta.get('version', '2.4.4'))
+    html = html.replace('{{版本号}}', meta.get('version', '2.4.5'))
     html = html.replace('{{场景标签}}', meta.get('scene_tag', '职场困局'))
     html = html.replace('{{关键人数}}', str(meta.get('key_people_count', len(data.get('relations', [])))))
     html = html.replace('{{用户背景概述}}', meta.get('background', diag.get('title', '')))
