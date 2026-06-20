@@ -71,7 +71,7 @@
 | `meta.scene_tag` | 场景中文标签，用于 Header badge（如"老黄牛困境"） |
 | `meta.key_people_count` | 整数，关键人物数量，用于 Header badge |
 | `relations` | 2-5 个，每人 4 字段必填 |
-| `power_structure` | 1-5 条关系链 |
+| `power_structure` | 1-5 条关系链，`from`/`to` 中用户一律写 `"我"`（脚本自动归一化"你"/"自己"等变体，但统一用"我"避免歧义） |
 | `strategies` | 1-3 条，每条必须含 `followup` |
 | `xingfa.tag` | 必须包含人名，如"反脆弱心法（塔勒布）" |
 | `xingfa.source` | 人名+书名，如"塔勒布《反脆弱》" |

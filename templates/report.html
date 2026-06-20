@@ -24,10 +24,10 @@
 body{
   font-family:"PingFang SC","Hiragino Sans GB","Noto Serif SC","Source Han Serif SC","Microsoft YaHei",-apple-system,sans-serif;
   background:var(--paper);color:var(--ink);
-  font-size:18px;line-height:1.85;letter-spacing:.02em;
+  font-size:19px;line-height:1.95;letter-spacing:.02em;
   -webkit-font-smoothing:antialiased;
 }
-.container{max-width:820px;margin:0 auto;overflow:hidden}
+.container{max-width:860px;margin:0 auto;overflow:hidden}
 
 /* ── Details/Summary ── */
 details{display:block}
@@ -54,10 +54,10 @@ details[open]>summary .fold-btn{transform:none}
   background:linear-gradient(90deg,var(--ikb) 0%,var(--amber) 50%,var(--rose) 100%);
 }
 .header h1{font-size:42px;font-weight:900;letter-spacing:.03em;margin-bottom:20px;line-height:1.25}
-.header .subtitle{font-size:19px;color:rgba(255,255,255,.7);font-weight:400;max-width:640px;line-height:1.7}
+.header .subtitle{font-size:20px;color:rgba(255,255,255,.7);font-weight:400;max-width:640px;line-height:1.7}
 .header .meta-badges{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
 .header .badge{
-  font-size:14px;font-weight:600;padding:7px 18px;
+  font-size:15px;font-weight:600;padding:7px 18px;
   border:1.5px solid rgba(255,255,255,.15);color:rgba(255,255,255,.6);
   display:inline-flex;align-items:center;gap:6px;border-radius:4px;
 }
@@ -79,13 +79,13 @@ details[open]>summary .fold-btn{transform:none}
   color:var(--amber);margin-bottom:24px;position:relative;z-index:1;
 }
 .xinfa-card .xf-quote{
-  font-size:24px;line-height:2.0;letter-spacing:.03em;font-weight:400;color:#E8E8E8;
+  font-size:26px;line-height:2.0;letter-spacing:.03em;font-weight:400;color:#E8E8E8;
   position:relative;z-index:1;
 }
-.xinfa-card .xf-source{font-size:15px;color:rgba(255,255,255,.35);margin-top:24px}
+.xinfa-card .xf-source{font-size:16px;color:rgba(255,255,255,.35);margin-top:24px}
 
 /* ═══ 3. 困局诊断 · 克莱因蓝整版 ═══ */
-.sec-diagnosis{background:var(--ikb);color:var(--white);padding:52px 36px}
+.sec-diagnosis{background:var(--ikb);color:var(--white);padding:56px 36px}
 .sec-diagnosis .sec-head{
   font-size:15px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
   color:rgba(255,255,255,.5);margin-bottom:28px;
@@ -99,17 +99,17 @@ details[open]>summary .fold-btn{transform:none}
   display:inline-block;font-size:14px;font-weight:700;letter-spacing:.08em;
   color:#fff;background:rgba(255,255,255,.12);padding:7px 18px;margin-bottom:24px;border-radius:4px;
 }
-.diag-title{font-size:26px;font-weight:900;margin-bottom:24px;line-height:1.45}
-.diag-text{font-size:18px;color:rgba(255,255,255,.88);line-height:1.9}
+.diag-title{font-size:28px;font-weight:900;margin-bottom:24px;line-height:1.45}
+.diag-text{font-size:19px;color:rgba(255,255,255,.88);line-height:1.9}
 .alt-perspective{
   margin-top:28px;padding:24px 28px;
   background:rgba(255,255,255,.06);border-left:4px solid var(--amber);border-radius:0 8px 8px 0;
 }
 .alt-perspective .alt-label{font-size:14px;font-weight:700;color:var(--amber);margin-bottom:10px}
-.alt-perspective .alt-text{font-size:17px;color:rgba(255,255,255,.8);line-height:1.85}
+.alt-perspective .alt-text{font-size:18px;color:rgba(255,255,255,.8);line-height:1.85}
 
 /* ═══ 4. 关系解码 · 暖白底撞色卡 ═══ */
-.sec-relations{background:var(--orange-bg);padding:52px 36px}
+.sec-relations{background:var(--orange-bg);padding:56px 36px}
 .sec-relations .sec-head{
   font-size:15px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
   color:var(--orange);margin-bottom:28px;
@@ -119,7 +119,7 @@ details[open]>summary .fold-btn{transform:none}
   width:32px;height:32px;background:var(--orange);color:#fff;border-radius:6px;
   font-size:14px;margin-right:10px;
 }
-.rel-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.rel-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 .rel-card{border:none;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06)}
 .rel-card:nth-child(1){background:var(--ikb);color:#fff}
 .rel-card:nth-child(2){background:var(--teal);color:#fff}
@@ -137,9 +137,9 @@ details[open]>summary .fold-btn{transform:none}
 .rel-card.avatar-di summary.rel-head::before{content:"◈"}
 .rel-card.avatar-ci summary.rel-head::before{content:"◎"}
 .rel-card .rel-head-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
-.rel-card .rel-name{font-size:20px;font-weight:800;line-height:1.3}
+.rel-card .rel-name{font-size:22px;font-weight:800;line-height:1.3}
 .rel-card:nth-child(n+4) .rel-name{color:var(--ink)}
-.rel-card .rel-hint{font-size:14px;opacity:.7;line-height:1.5}
+.rel-card .rel-hint{font-size:15px;opacity:.7;line-height:1.5}
 .rel-card:nth-child(n+4) .rel-hint{color:var(--t3);opacity:1}
 .rel-card .fold-btn{
   align-self:center;
@@ -148,7 +148,7 @@ details[open]>summary .fold-btn{transform:none}
 .rel-card:nth-child(n+4) .fold-btn{background:var(--purple-light);color:var(--purple)}
 .rel-card summary.rel-head:hover{filter:brightness(1.08)}
 .rel-card .rel-body{padding:0 22px 22px;display:flex;flex-direction:column;gap:14px}
-.rel-card .rel-row{display:flex;gap:12px;font-size:15px;line-height:1.7;align-items:flex-start}
+.rel-card .rel-row{display:flex;gap:14px;font-size:16px;line-height:1.7;align-items:flex-start}
 .rel-card .rel-icon{flex-shrink:0;font-size:16px;width:22px;text-align:center}
 .rel-card .rel-label{
   flex-shrink:0;font-size:13px;font-weight:700;letter-spacing:.04em;
@@ -158,14 +158,14 @@ details[open]>summary .fold-btn{transform:none}
 .rel-card .rel-val{opacity:.9}
 .rel-card:nth-child(n+4) .rel-val{color:var(--t2);opacity:1}
 .rel-card .rel-leverage{
-  background:rgba(255,255,255,.1);padding:14px 16px;font-weight:700;font-size:15px;
+  background:rgba(255,255,255,.1);padding:16px 18px;font-weight:700;font-size:16px;
   border-radius:8px;line-height:1.65;
 }
 .rel-card:nth-child(n+4) .rel-leverage{background:var(--orange-bg);color:var(--orange)}
 @media(max-width:500px){.rel-grid{grid-template-columns:1fr}}
 
 /* ═══ 5. 权力结构 · 纵向流信息图 ═══ */
-.sec-power{background:var(--purple);color:#E2D9F3;padding:52px 36px}
+.sec-power{background:var(--purple);color:#E2D9F3;padding:56px 36px}
 .sec-power .sec-head{
   font-size:15px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
   color:rgba(255,255,255,.5);margin-bottom:28px;
@@ -181,13 +181,13 @@ details[open]>summary .fold-btn{transform:none}
   padding:18px 28px;border-radius:14px;text-align:center;min-width:120px;
   border:2px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);
 }
-.pf-node .pf-name{font-size:22px;font-weight:800;color:#fff}
+.pf-node .pf-name{font-size:24px;font-weight:800;color:#fff}
 .pf-node .pf-desc{font-size:14px;color:rgba(255,255,255,.5);margin-top:6px;line-height:1.5}
 .pf-node.pf-me{
   border-color:var(--amber);background:rgba(232,146,60,.15);
   box-shadow:0 0 0 8px rgba(232,146,60,.08);
 }
-.pf-node.pf-me .pf-name{color:var(--amber);font-size:24px}
+.pf-node.pf-me .pf-name{color:var(--amber);font-size:26px}
 /* 纵向箭头（上→下） */
 .pf-arrow-down{
   display:flex;flex-direction:column;align-items:center;gap:4px;
@@ -217,8 +217,8 @@ details[open]>summary .fold-btn{transform:none}
 .pf-arrow-left::after{content:"";width:24px;height:3px;background:var(--amber);border-radius:2px}
 /* 横向行中的节点缩小 */
 .pf-row .pf-node{padding:14px 20px;min-width:90px}
-.pf-row .pf-node .pf-name{font-size:18px}
-.pf-row .pf-node.pf-me .pf-name{font-size:20px}
+.pf-row .pf-node .pf-name{font-size:20px}
+.pf-row .pf-node.pf-me .pf-name{font-size:22px}
 @media(max-width:600px){
   .pf-row{flex-direction:column;gap:6px}
   .pf-arrow-right,.pf-arrow-left{flex-direction:column}
@@ -229,7 +229,7 @@ details[open]>summary .fold-btn{transform:none}
 }
 
 /* ═══ 6. 策略 · 浅紫白交替 ═══ */
-.sec-strategy{background:var(--purple-light);padding:52px 36px}
+.sec-strategy{background:var(--purple-light);padding:56px 36px}
 .sec-strategy .sec-head{
   font-size:15px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
   color:var(--purple);margin-bottom:28px;
@@ -246,8 +246,8 @@ details[open]>summary .fold-btn{transform:none}
   font-family:"SF Mono","JetBrains Mono","Consolas",monospace;
 }
 .strategy-block .st-summary-text{flex:1}
-.strategy-block .st-summary-text .st-name{font-size:20px;font-weight:800;letter-spacing:.03em}
-.strategy-block .st-summary-text .st-source{font-size:14px;color:var(--t3);font-style:italic;margin-top:4px}
+.strategy-block .st-summary-text .st-name{font-size:22px;font-weight:800;letter-spacing:.03em}
+.strategy-block .st-summary-text .st-source{font-size:15px;color:var(--t3);font-style:italic;margin-top:4px}
 .strategy-block .fold-btn{background:var(--purple-light);color:var(--purple);align-self:center}
 .strategy-block summary.st-summary:hover{background:rgba(45,27,105,.02)}
 .strategy-block .st-body{padding:0 26px 26px}
@@ -256,26 +256,26 @@ details[open]>summary .fold-btn{transform:none}
 .strategy-info .si-row{display:flex;gap:12px;align-items:flex-start;border-top:1px solid var(--border);padding-top:14px}
 .strategy-info .si-icon{flex-shrink:0;font-size:17px;width:24px;text-align:center}
 .strategy-info .si-label{flex-shrink:0;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--t3);min-width:48px;padding-top:2px}
-.strategy-info .si-content{font-size:16px;color:var(--t2);line-height:1.75}
+.strategy-info .si-content{font-size:17px;color:var(--t2);line-height:1.75}
 .strategy-script{
   background:var(--purple);color:#fff;padding:22px;border-radius:10px;
   display:flex;flex-direction:column;gap:14px;align-self:start;
 }
 .strategy-script .ss-label{font-size:14px;font-weight:700;color:var(--amber);letter-spacing:.04em}
-.strategy-script .ss-text{font-size:17px;line-height:1.95;color:#E8E2F5;white-space:pre-line}
+.strategy-script .ss-text{font-size:18px;line-height:1.95;color:#E8E2F5;white-space:pre-line}
 .followup{
   margin-top:22px;padding:22px;background:#fff;border:1px solid var(--border);
   border-left:4px solid var(--purple);border-radius:0 10px 10px 0;
 }
 .followup .fu-label{font-size:14px;font-weight:700;color:var(--purple);margin-bottom:14px}
 .followup .fu-options{list-style:none;display:flex;flex-direction:column;gap:10px}
-.followup .fu-options li{font-size:17px;padding:14px 0;line-height:1.6}
+.followup .fu-options li{font-size:18px;padding:14px 0;line-height:1.6}
 .followup .fu-skip{font-size:14px;color:var(--t3);margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
 .followup .fu-round2{margin-top:14px;font-size:15px;color:var(--t3);line-height:1.8}
 @media(max-width:600px){.strategy-duo{grid-template-columns:1fr}}
 
 /* ═══ 7. 三件事 · 琥珀橙便签 ═══ */
-.sec-checklist{background:var(--amber);color:var(--ink);padding:52px 36px}
+.sec-checklist{background:var(--amber);color:var(--ink);padding:56px 36px}
 .sec-checklist .sec-head{
   font-size:15px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
   color:rgba(0,0,0,.5);margin-bottom:28px;
@@ -295,8 +295,8 @@ details[open]>summary .fold-btn{transform:none}
   display:flex;align-items:center;justify-content:center;z-index:1;
 }
 .tl-dot .tl-num{font-size:11px;font-weight:900;color:var(--amber);line-height:1}
-.tl-title{font-size:20px;font-weight:800;margin-bottom:8px}
-.tl-desc{font-size:17px;color:rgba(0,0,0,.7);line-height:1.8;white-space:pre-line}
+.tl-title{font-size:22px;font-weight:800;margin-bottom:8px}
+.tl-desc{font-size:18px;color:rgba(0,0,0,.7);line-height:1.8;white-space:pre-line}
 
 /* ═══ 8. 危险区 · 玫红整版 ═══ */
 .danger-card{background:var(--rose);color:#fff;border:none;border-radius:0;overflow:hidden}
@@ -305,7 +305,7 @@ details[open]>summary .fold-btn{transform:none}
 .danger-card .dc-title{font-size:24px;font-weight:800;color:#fff;letter-spacing:.03em;flex:1}
 .danger-card .fold-btn{background:rgba(255,255,255,.12);color:rgba(255,255,255,.8)}
 .danger-card .dc-body{padding:0 36px 32px}
-.danger-card .dc-text{font-size:18px;color:rgba(255,255,255,.92);line-height:1.9}
+.danger-card .dc-text{font-size:19px;color:rgba(255,255,255,.92);line-height:1.9}
 
 /* ── 版本 ── */
 .ver-footer{

@@ -21,6 +21,13 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SKILL_DIR = os.path.dirname(SCRIPT_DIR)
 TEMPLATE_PATH = os.path.join(SKILL_DIR, 'templates', 'report.html')
 
+# 用户自称归一化：模型可能生成"你"/"自己"/"本人"等，统一当"我"处理
+_ME_VARIANTS = {'我', '你', '自己', '本人', '用户'}
+
+def _is_me(name: str) -> bool:
+    """判断 from/to 字段是否指代用户本人"""
+    return name.strip() in _ME_VARIANTS
+
 # ═══════════════════════════════════════════════════════════
 # HTML 片段模板
 # ═══════════════════════════════════════════════════════════
@@ -126,12 +133,12 @@ def generate_adler_strategy(relations: list, power_structure: list, diagnosis: d
         desc = p.get('desc', '')
         to_who, from_who = p.get('to', ''), p.get('from', '')
 
-        if to_who == '我':
+        if _is_me(to_who):
             if any(kw in desc for kw in ['拖', '等', '慢', '不拒', '太极', '推']):
                 blockers.append(from_who)
             if any(kw in desc for kw in ['施压', '追', '催', '逼', '急']):
                 pressurers.append(from_who)
-        elif to_who != '我' and from_who != '我':
+        elif not _is_me(to_who) and not _is_me(from_who):
             if any(kw in desc for kw in ['庇护', '保', '护', '罩']):
                 protectors.append((from_who, to_who))
 
@@ -189,7 +196,7 @@ def build(data: dict) -> str:
 
     # ── Header 简单占位符 ──
     html = html.replace('{{页面标题}}', meta.get('page_title', meta.get('case_title', '职场关系分析')))
-    html = html.replace('{{版本号}}', meta.get('version', '2.4.0'))
+    html = html.replace('{{版本号}}', meta.get('version', '2.4.4'))
     html = html.replace('{{场景标签}}', meta.get('scene_tag', '职场困局'))
     html = html.replace('{{关键人数}}', str(meta.get('key_people_count', len(data.get('relations', [])))))
     html = html.replace('{{用户背景概述}}', meta.get('background', diag.get('title', '')))
@@ -233,10 +240,10 @@ def build(data: dict) -> str:
     power = data.get('power_structure', [])
     tri_parts = []
     if power:
-        # 分类边：指向我的、从我出发的、不涉及我的
-        to_me = [p for p in power if p.get('to', '') == '我']
-        from_me = [p for p in power if p.get('from', '') == '我' and p.get('to', '') != '我']
-        not_to_me = [p for p in power if p.get('to', '') != '我' and p.get('from', '') != '我']
+        # 分类边：指向我的、从我出发的、不涉及我的（归一化"你"/"自己"等变体）
+        to_me = [p for p in power if _is_me(p.get('to', ''))]
+        from_me = [p for p in power if _is_me(p.get('from', '')) and not _is_me(p.get('to', ''))]
+        not_to_me = [p for p in power if not _is_me(p.get('to', '')) and not _is_me(p.get('from', ''))]
 
         # 第一步：不涉及我的边 = 上层关系，纵向展示
         for i, p in enumerate(not_to_me):
