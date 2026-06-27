@@ -164,7 +164,7 @@ details[open]>summary .fold-btn{transform:none}
 .rel-card:nth-child(n+4) .rel-leverage{background:var(--orange-bg);color:var(--orange)}
 @media(max-width:500px){.rel-grid{grid-template-columns:1fr}}
 
-/* ═══ 5. 权力结构 · 纵向流信息图 ═══ */
+/* ═══ 5. 权力结构 · 辐射关系图 (SVG) ═══ */
 .sec-power{background:var(--purple);color:#E2D9F3;padding:56px 36px}
 .sec-power .sec-head{
   font-size:15px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
@@ -175,57 +175,80 @@ details[open]>summary .fold-btn{transform:none}
   width:32px;height:32px;background:rgba(255,255,255,.1);color:#E2D9F3;border-radius:6px;
   font-size:14px;margin-right:10px;
 }
-/* 纵向流布局 */
-.power-flow{display:flex;flex-direction:column;align-items:center;gap:0;padding:16px 0}
-.pf-node{
-  padding:18px 28px;border-radius:14px;text-align:center;min-width:120px;
-  border:2px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);
+.pf-svg{width:100%;max-width:900px;margin:0 auto;display:block}
+.pf-svg-edge{stroke-width:3;stroke-linecap:round}
+.pf-svg-edge-default{stroke:rgba(255,255,255,.25)}
+.pf-svg-edge-trust{stroke:var(--amber);stroke-dasharray:10,5}
+.pf-svg-edge-control{stroke:#e74c3c;stroke-width:3.5}
+.pf-svg-edge-collab{stroke:#27ae60}
+.pf-svg-edge-conflict{stroke:var(--rose);stroke-dasharray:8,4}
+.pf-svg-elabel{
+  fill:rgba(255,255,255,.6);font-size:15px;font-weight:700;
+  text-anchor:middle;dominant-baseline:central;
+  font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
 }
-.pf-node .pf-name{font-size:24px;font-weight:800;color:#fff}
-.pf-node .pf-desc{font-size:14px;color:rgba(255,255,255,.5);margin-top:6px;line-height:1.5}
-.pf-node.pf-me{
-  border-color:var(--amber);background:rgba(232,146,60,.15);
-  box-shadow:0 0 0 8px rgba(232,146,60,.08);
+.pf-svg-node{cursor:default}
+.pf-svg-me rect{fill:rgba(232,146,60,.15);stroke:var(--amber);stroke-width:3.5}
+.pf-svg-me .pf-svg-nname{
+  fill:var(--amber);font-size:28px;font-weight:900;
+  text-anchor:middle;dominant-baseline:central;
+  font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
 }
-.pf-node.pf-me .pf-name{color:var(--amber);font-size:26px}
-/* 纵向箭头（上→下） */
-.pf-arrow-down{
-  display:flex;flex-direction:column;align-items:center;gap:4px;
-  padding:10px 0;color:var(--amber);font-size:15px;font-weight:700;letter-spacing:.03em;
+.pf-svg-other rect{fill:rgba(255,255,255,.06);stroke:rgba(255,255,255,.18);stroke-width:2.5}
+.pf-svg-other .pf-svg-nname{
+  fill:#fff;font-size:21px;font-weight:800;
+  text-anchor:middle;dominant-baseline:central;
+  font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
 }
-.pf-arrow-down::after{
-  content:"";width:0;height:0;
-  border:7px solid transparent;border-top:10px solid var(--amber);
+.pf-svg-other .pf-svg-ntag{
+  fill:rgba(255,255,255,.45);font-size:14px;font-weight:700;
+  text-anchor:middle;dominant-baseline:central;letter-spacing:.06em;
+  font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
 }
-.pf-arrow-down .pf-line{width:3px;height:20px;background:var(--amber);border-radius:2px}
-/* 横向行 */
-.pf-row{
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  flex-wrap:nowrap;width:100%;max-width:700px;
+
+/* ═══ 5.5. 杠杆点解析 · 深青洞察卡 ═══ */
+.sec-leverage{background:var(--teal);color:#fff;padding:56px 36px}
+.sec-leverage .sec-head{
+  font-size:15px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:rgba(255,255,255,.5);margin-bottom:28px;
 }
-.pf-arrow-right{
-  display:flex;align-items:center;gap:6px;color:var(--amber);
-  font-size:14px;font-weight:700;white-space:nowrap;flex-shrink:0;
+.sec-leverage .sec-head .num{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:32px;height:32px;background:rgba(255,255,255,.1);color:#fff;border-radius:6px;
+  font-size:14px;margin-right:10px;
 }
-.pf-arrow-right::before{content:"";width:24px;height:3px;background:var(--amber);border-radius:2px}
-.pf-arrow-right::after{content:"";border:6px solid transparent;border-left:9px solid var(--amber)}
-.pf-arrow-left{
-  display:flex;align-items:center;gap:6px;color:var(--amber);
-  font-size:14px;font-weight:700;white-space:nowrap;flex-shrink:0;
+.lev-grid{display:flex;flex-direction:column;gap:16px}
+.lev-card{
+  background:rgba(255,255,255,.08);border-radius:12px;padding:24px 26px;
+  border-left:4px solid var(--amber);
 }
-.pf-arrow-left::before{content:"";border:6px solid transparent;border-right:9px solid var(--amber)}
-.pf-arrow-left::after{content:"";width:24px;height:3px;background:var(--amber);border-radius:2px}
-/* 横向行中的节点缩小 */
-.pf-row .pf-node{padding:14px 20px;min-width:90px}
-.pf-row .pf-node .pf-name{font-size:20px}
-.pf-row .pf-node.pf-me .pf-name{font-size:22px}
-@media(max-width:600px){
-  .pf-row{flex-direction:column;gap:6px}
-  .pf-arrow-right,.pf-arrow-left{flex-direction:column}
-  .pf-arrow-right::before{width:3px;height:16px}
-  .pf-arrow-right::after{border:6px solid transparent;border-top:9px solid var(--amber);border-left:none}
-  .pf-arrow-left::before{border:6px solid transparent;border-bottom:9px solid var(--amber);border-right:none}
-  .pf-arrow-left::after{width:3px;height:16px}
+.lev-card .lev-title{
+  font-size:22px;font-weight:800;margin-bottom:18px;
+  display:flex;align-items:center;gap:10px;
+}
+.lev-card .lev-title .lev-icon{
+  font-size:18px;background:rgba(255,255,255,.12);
+  width:36px;height:36px;border-radius:10px;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.lev-card .lev-row{
+  display:flex;gap:12px;align-items:flex-start;
+  padding:12px 0;border-top:1px solid rgba(255,255,255,.08);
+  font-size:17px;line-height:1.8;
+}
+.lev-card .lev-row .lev-label{
+  flex-shrink:0;font-size:13px;font-weight:700;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--amber);min-width:70px;padding-top:3px;
+}
+.lev-card .lev-row .lev-val{color:rgba(255,255,255,.9)}
+.lev-card .lev-risk{
+  margin-top:14px;padding:14px 18px;
+  background:rgba(0,0,0,.15);border-radius:8px;
+  font-size:16px;line-height:1.75;color:rgba(255,255,255,.75);
+}
+.lev-card .lev-risk .lev-risk-label{
+  font-size:13px;font-weight:700;color:var(--rose);
+  letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px;
 }
 
 /* ═══ 6. 策略 · 浅紫白交替 ═══ */
@@ -365,20 +388,20 @@ details[open]>summary .fold-btn{transform:none}
 <!-- ═══ 5. 权力结构 ═══ -->
 <div class="sec-power">
   <div class="sec-head"><span class="num">03</span> 权力结构</div>
-  <div class="power-flow">
-{{TRI_ANCHOR_NODES}}
-  </div>
+{{POWER_DIAGRAM}}
 </div>
+
+{{LEVERAGE_SECTION}}
 
 <!-- ═══ 6. 策略 ═══ -->
 <div class="sec-strategy">
-  <div class="sec-head"><span class="num">04</span> 策略组合</div>
+  <div class="sec-head"><span class="num">05</span> 策略组合</div>
 {{STRATEGY_BLOCKS}}
 </div>
 
 <!-- ═══ 7. 三件事 ═══ -->
 <div class="sec-checklist">
-  <div class="sec-head"><span class="num">05</span> 三件事清单</div>
+  <div class="sec-head"><span class="num">06</span> 三件事清单</div>
   <div class="timeline">
 {{TIMELINE_ITEMS}}
   </div>

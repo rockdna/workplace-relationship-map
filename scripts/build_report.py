@@ -1,7 +1,17 @@
 #!/usr/bin/env python3
-"""职场关系地图 HTML 报告生成器 v2.4.5
+"""职场关系地图 HTML 报告生成器 v2.6.0
 
 用法: python3 scripts/build_report.py <data.json> [output.html]
+
+v2.6.0 变更:
+- 杠杆点从 power_structure 边属性 → 顶层独立概念（意识/哲学/生存之道）
+- 权力图从线性流布局 → SVG 辐射关系图（我居中，每人只出现一次）
+- 关系边支持 tag 短标签（如"控制""收编"），用于图上标注
+- 人物支持 tag 角色标签（如"NPD上司""决策者"），显示在节点上
+- 关系线颜色区分类型：控制(红) / 信任(橙虚线) / 协作(绿) / 对立(玫红虚线)
+
+v2.5.0 变更:
+- 杠杆点发现与解析：power_structure 每条边可选 leverage 对象（point/why/how/risk）（已废弃，改为顶层）
 
 v2.4.5 变更:
 - 阿德勒策略场景路由：4 个子策略（设立边界/不接情绪/不卷入/角色重置）
@@ -23,7 +33,7 @@ v2.4.0 变更:
 - 稀疏模式: ≤2条权力关系自动居中降级
 """
 
-import json, sys, os, re
+import json, sys, os, re, math
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SKILL_DIR = os.path.dirname(SCRIPT_DIR)
@@ -62,15 +72,199 @@ RELATION_CARD = '''      <details class="rel-card {avatar_shape}"{open_attr}>
         </div>
       </details>'''
 
-TRI_ANCHOR_NODE_TOP = '''      <div class="pf-node">
-        <div class="pf-name">{name}</div>
-      </div>
-      <div class="pf-arrow-down"><span class="pf-line"></span>{edge_label}</div>'''
+# ═══════════════════════════════════════════════════════════
+# 权力结构 · SVG 辐射图生成 (v2.6.0)
+# ═══════════════════════════════════════════════════════════
 
-TRI_ANCHOR_NODE_ROW = '''      <div class="pf-node {extra_class}"><div class="pf-name">{name}</div></div>
-      <div class="pf-arrow-{arrow_dir}">{edge_label}</div>'''
+def _classify_edge_type(desc: str) -> str:
+    """从 desc 推断关系类型，用于 SVG 连线颜色"""
+    control_kws = ['控制', '施压', '越界', '催', '逼', '收编', '庇护', '包庇', '纵容']
+    trust_kws = ['信任', '盟友', '依靠', '自己人', '旧信任']
+    collab_kws = ['协作', '合作', '帮', '传帮带', '配合', '试探', '靠近', '同盟']
+    conflict_kws = ['对立', '冲突', '对抗', '矛盾', '争']
+    if any(kw in desc for kw in control_kws):
+        return 'control'
+    if any(kw in desc for kw in trust_kws):
+        return 'trust'
+    if any(kw in desc for kw in collab_kws):
+        return 'collab'
+    if any(kw in desc for kw in conflict_kws):
+        return 'conflict'
+    return 'default'
 
-TRI_ANCHOR_NODE_ME = '''      <div class="pf-node pf-me"><div class="pf-name">我</div></div>'''
+
+def _build_power_svg(relations: list, power_structure: list) -> str:
+    """生成以「我」为中心的辐射关系图 SVG
+
+    设计原则：
+    - 每个人只出现一次，我居中辐射
+    - 角色标签（tag）标注在人物节点上
+    - 关系线颜色区分类型（控制/信任/协作/对立）
+    - 边标签（tag）标注在关系线上
+    """
+    # 1. 收集所有人名（排除"我"变体）
+    people = []
+    people_tags = {}
+    for r in relations:
+        name = r.get('name', '')
+        if name and not _is_me(name):
+            if name not in people:
+                people.append(name)
+            people_tags[name] = r.get('tag', '')
+
+    # 补充 power_structure 中出现但不在 relations 中的人
+    for p in power_structure:
+        for key in ('from', 'to'):
+            name = p.get(key, '')
+            if name and not _is_me(name) and name not in people:
+                people.append(name)
+                people_tags[name] = ''
+
+    n = len(people)
+    if n == 0:
+        return '<div class="pf-empty" style="text-align:center;color:rgba(255,255,255,.4);padding:40px">暂无权力关系数据</div>'
+
+    # 2. 计算节点位置
+    cx, cy = 450, 350
+    radius = 240 if n <= 4 else 260
+
+    positions = {'我': (cx, cy)}
+    for i, name in enumerate(people):
+        angle = -math.pi / 2 + i * (2 * math.pi / n)
+        x = cx + radius * math.cos(angle)
+        y = cy + radius * math.sin(angle)
+        positions[name] = (x, y)
+
+    # 3. 构建 SVG（分层：边线在底层，节点在上层）
+    parts = []
+    parts.append('<svg viewBox="0 0 900 700" class="pf-svg" xmlns="http://www.w3.org/2000/svg">')
+
+    # 箭头标记定义
+    parts.append('''<defs>
+      <marker id="pf-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,1 L10,5 L0,9" fill="rgba(255,255,255,.3)"/></marker>
+      <marker id="pf-arr-c" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,1 L10,5 L0,9" fill="#e74c3c"/></marker>
+      <marker id="pf-arr-t" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,1 L10,5 L0,9" fill="#E8923C"/></marker>
+      <marker id="pf-arr-g" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,1 L10,5 L0,9" fill="#27ae60"/></marker>
+    </defs>''')
+
+    # ── 第一层：边线（最底层） ──
+    parts.append('<g class="pf-svg-edges">')
+    for p in power_structure:
+        from_name = '我' if _is_me(p.get('from', '')) else p.get('from', '')
+        to_name = '我' if _is_me(p.get('to', '')) else p.get('to', '')
+
+        if from_name not in positions or to_name not in positions:
+            continue
+
+        x1, y1 = positions[from_name]
+        x2, y2 = positions[to_name]
+
+        edge_type = _classify_edge_type(p.get('desc', ''))
+        edge_tag = p.get('tag', '')
+
+        # 缩短线段避免与节点重叠
+        dx, dy = x2 - x1, y2 - y1
+        length = math.sqrt(dx * dx + dy * dy)
+        if length > 0:
+            shrink = 90
+            ratio = shrink / length
+            sx, sy = x1 + dx * ratio, y1 + dy * ratio
+            ex, ey = x2 - dx * ratio, y2 - dy * ratio
+        else:
+            sx, sy, ex, ey = x1, y1, x2, y2
+
+        # 选择箭头标记
+        marker_map = {'control': 'pf-arr-c', 'trust': 'pf-arr-t', 'collab': 'pf-arr-g'}
+        marker_id = marker_map.get(edge_type, 'pf-arr')
+
+        parts.append(f'<line class="pf-svg-edge pf-svg-edge-{edge_type}" '
+                     f'x1="{sx:.1f}" y1="{sy:.1f}" x2="{ex:.1f}" y2="{ey:.1f}" '
+                     f'marker-end="url(#{marker_id})" />')
+
+        # 边标签（加权定位，避开中心「我」节点）
+        label = edge_tag
+        if not label:
+            desc = p.get('desc', '')
+            label = desc[:6] + '…' if len(desc) > 6 else desc
+        if label:
+            is_from_me = (from_name == '我')
+            is_to_me = (to_name == '我')
+            if is_from_me:
+                # 从我出发：标签靠向对方（0.65处）
+                t = 0.65
+                lx = x1 + dx * t
+                ly = y1 + dy * t
+            elif is_to_me:
+                # 指向我：标签靠向对方（0.35处）
+                t = 0.35
+                lx = x1 + dx * t
+                ly = y1 + dy * t
+            else:
+                # 两端都是外围节点：标签放1/3处，远离中心
+                # 选离中心更远的那个端点，标签靠近它
+                d1 = math.sqrt((x1 - cx) ** 2 + (y1 - cy) ** 2)
+                d2 = math.sqrt((x2 - cx) ** 2 + (y2 - cy) ** 2)
+                if d1 >= d2:
+                    lx, ly = x1 + dx * 0.3, y1 + dy * 0.3
+                else:
+                    lx, ly = x1 + dx * 0.7, y1 + dy * 0.7
+            # 垂直于线段方向偏移 18px
+            if length > 0:
+                nx, ny = -dy / length * 18, dx / length * 18
+            else:
+                nx, ny = 0, -18
+            parts.append(f'<text class="pf-svg-elabel" x="{lx + nx:.1f}" y="{ly + ny:.1f}">{label}</text>')
+    parts.append('</g>')
+
+    # ── 第二层：节点（最顶层，覆盖边线） ──
+    parts.append('<g class="pf-svg-nodes">')
+
+    # 「我」节点（中心）
+    parts.append(f'''<g class="pf-svg-node pf-svg-me" transform="translate({cx},{cy})">
+      <rect x="-65" y="-30" width="130" height="60" rx="12"/>
+      <text class="pf-svg-nname">我</text>
+    </g>''')
+
+    # 其他人物节点
+    for name in people:
+        x, y = positions[name]
+        tag = people_tags.get(name, '')
+        if tag:
+            tag_line = f'<text class="pf-svg-ntag" y="-16">{tag}</text>'
+            name_y = 12
+            rect_y, rect_h = -40, 80
+        else:
+            tag_line = ''
+            name_y = 0
+            rect_y, rect_h = -32, 64
+        parts.append(f'''<g class="pf-svg-node pf-svg-other" transform="translate({x:.1f},{y:.1f})">
+      <rect x="-76" y="{rect_y}" width="152" height="{rect_h}" rx="12"/>
+      {tag_line}
+      <text class="pf-svg-nname" y="{name_y}">{name}</text>
+    </g>''')
+
+    parts.append('</g>')
+    parts.append('</svg>')
+    return '\n'.join(parts)
+
+LEVERAGE_CARD = '''      <div class="lev-card">
+        <div class="lev-title">
+          <span class="lev-icon">🔑</span>
+          {point}
+        </div>
+        <div class="lev-row">
+          <span class="lev-label">发现逻辑</span>
+          <span class="lev-val">{why}</span>
+        </div>
+        <div class="lev-row">
+          <span class="lev-label">怎么撬</span>
+          <span class="lev-val">{how}</span>
+        </div>
+        <div class="lev-risk">
+          <div class="lev-risk-label">⚠️ 风险</div>
+          {risk}
+        </div>
+      </div>'''
 
 STRATEGY_BLOCK = '''    <details class="strategy-block"{open_attr}>
       <summary class="st-summary">
@@ -470,52 +664,31 @@ def build(data: dict) -> str:
         ))
     html = html.replace('{{RELATION_CARDS}}', '\n'.join(rel_cards))
 
-    # ── 权力结构纵向流 ──
+    # ── 权力结构 · 辐射关系图 ──
     power = data.get('power_structure', [])
-    tri_parts = []
-    if power:
-        # 分类边：指向我的、从我出发的、不涉及我的（归一化"你"/"自己"等变体）
-        to_me = [p for p in power if _is_me(p.get('to', ''))]
-        from_me = [p for p in power if _is_me(p.get('from', '')) and not _is_me(p.get('to', ''))]
-        not_to_me = [p for p in power if not _is_me(p.get('to', '')) and not _is_me(p.get('from', ''))]
+    power_svg = _build_power_svg(relations, power)
+    html = html.replace('{{POWER_DIAGRAM}}', power_svg)
 
-        # 第一步：不涉及我的边 = 上层关系，纵向展示
-        for i, p in enumerate(not_to_me):
-            f_name = p.get('from', '')
-            t_name = p.get('to', '')
-            desc = p.get('desc', '')
-            # 上方节点
-            tri_parts.append(TRI_ANCHOR_NODE_TOP.format(name=f_name, edge_label=desc))
-            # 下方节点（不指向我的边的 target）
-            tri_parts.append('<div class="pf-node"><div class="pf-name">{}</div></div>'.format(t_name))
-
-        # 第二步：横向行 - 指向我的边（他人 → 我）
-        if to_me:
-            tri_parts.append('<div class="pf-row">')
-            for i, p in enumerate(to_me):
-                f_name = p.get('from', '')
-                desc = p.get('desc', '')
-                if i > 0:
-                    tri_parts.append(TRI_ANCHOR_NODE_ME)
-                tri_parts.append(TRI_ANCHOR_NODE_ROW.format(
-                    name=f_name, extra_class='', arrow_dir='right', edge_label=desc
-                ))
-            tri_parts.append(TRI_ANCHOR_NODE_ME)
-            tri_parts.append('</div>')
-
-        # 第三步：横向行 - 从我出发的边（我 → 他人）
-        if from_me:
-            tri_parts.append('<div class="pf-row" style="margin-top:16px">')
-            tri_parts.append(TRI_ANCHOR_NODE_ME)
-            for i, p in enumerate(from_me):
-                t_name = p.get('to', '')
-                desc = p.get('desc', '')
-                # 先箭头后节点（我 → 他人）
-                tri_parts.append('      <div class="pf-arrow-right">{}</div>'.format(desc))
-                tri_parts.append('      <div class="pf-node"><div class="pf-name">{}</div></div>'.format(t_name))
-            tri_parts.append('</div>')
-
-    html = html.replace('{{TRI_ANCHOR_NODES}}', '\n'.join(tri_parts))
+    # ── 杠杆点解析区块（顶层独立概念） ──
+    leverage_items = data.get('leverage', [])
+    if leverage_items:
+        lev_cards = []
+        for lev in leverage_items:
+            lev_cards.append(LEVERAGE_CARD.format(
+                point=lev.get('point', ''),
+                why=lev.get('why', ''),
+                how=lev.get('how', ''),
+                risk=lev.get('risk', '')
+            ))
+        leverage_section_html = '''<div class="sec-leverage">
+  <div class="sec-head"><span class="num">04</span> 杠杆点解析</div>
+  <div class="lev-grid">
+{cards}
+  </div>
+</div>'''.format(cards='\n'.join(lev_cards))
+    else:
+        leverage_section_html = ''
+    html = html.replace('{{LEVERAGE_SECTION}}', leverage_section_html)
 
     # ── 策略区块 ──
     strategies = list(data.get('strategies', []))
