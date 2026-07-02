@@ -90,8 +90,8 @@
 | `leverage[].how` | 行动路径：动词开头的具体动作，2-3 句，禁止"加强沟通"等废话 |
 | `leverage[].risk` | 误判风险：时机/方式错误会怎样，1-2 句 |
 | `strategies` | 1-3 条，每条必须含 `followup` |
-| `xingfa.tag` | 必须包含人名，如"反脆弱心法（塔勒布）" |
-| `xingfa.source` | 人名+书名，如"塔勒布《反脆弱》" |
+| `xingfa.tag` | 必须包含人名，如"反脆弱心法（塔勒布）""斯多葛心法（爱比克泰德）""NVC心法（卢森堡）" |
+| `xingfa.source` | 人名+书名，如"塔勒布《反脆弱》""爱比克泰德《手册》""马可·奥勒留《沉思录》""塞涅卡《致卢齐利乌斯的信》""卢森堡《非暴力沟通》" |
 | `xingfa.quote` | 必须与 source 的哲学内核有真实关联，禁止通用鸡汤贴标签。当 source 为《黑神话：悟空》时，quote 必须从以下主题之一 authentically derive：执念、天命之问、金箍悖论、兵解、六根与五毒、佛魔同体、轮回之力。参考 `references/wukong-xingfa-guide.md` |
 | `diagnosis.alt_view` | 以"可能没注意到的是…"或"另一个角度是…"开头 |
 | `strategies[].name` | 关系操作名（如"先拿筹码再谈底线"），禁止哲学标签（如"杠铃策略"） |

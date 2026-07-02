@@ -341,9 +341,48 @@ details[open]>summary .fold-btn{transform:none}
   body{background:#fff}
   details[open]>:not(summary){display:block!important}
 }
+
+/* ═══ 导出按钮 ═══ */
+.export-btn{
+  position:fixed;top:16px;right:16px;z-index:9999;
+  width:42px;height:42px;border-radius:50%;border:none;
+  background:var(--ink);color:#fff;font-size:20px;cursor:pointer;
+  box-shadow:0 2px 12px rgba(0,0,0,.25);transition:all .2s;
+  display:flex;align-items:center;justify-content:center;
+}
+.export-btn:hover{transform:scale(1.1);box-shadow:0 4px 20px rgba(0,0,0,.35)}
+.export-menu{
+  position:fixed;top:66px;right:16px;z-index:9999;
+  background:var(--ink);border-radius:12px;padding:6px 0;
+  box-shadow:0 8px 32px rgba(0,0,0,.35);display:none;min-width:180px;
+  overflow:hidden;
+}
+.export-menu.show{display:block}
+.export-menu button{
+  display:block;width:100%;padding:12px 20px;border:none;
+  background:transparent;color:#fff;font-size:15px;font-weight:600;
+  text-align:left;cursor:pointer;letter-spacing:.03em;
+  font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+}
+.export-menu button:hover{background:rgba(255,255,255,.1)}
+.export-menu button+button{border-top:1px solid rgba(255,255,255,.08)}
+.export-toast{
+  position:fixed;bottom:32px;left:50%;transform:translateX(-50%);z-index:9999;
+  background:var(--ink);color:#fff;padding:12px 28px;border-radius:24px;
+  font-size:14px;font-weight:700;opacity:0;transition:opacity .3s;pointer-events:none;
+  font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+}
+.export-toast.show{opacity:1}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
+<button class="export-btn" id="exportBtn" title="导出图片">📷</button>
+<div class="export-menu" id="exportMenu">
+  <button onclick="exportFull()">📄 导出全图</button>
+  <button onclick="exportModules()">📑 逐模块导出</button>
+</div>
+<div class="export-toast" id="exportToast"></div>
 <div class="container">
 
 <!-- ═══ 1. 标题区 ═══ -->
@@ -420,5 +459,67 @@ details[open]>summary .fold-btn{transform:none}
 
 <div class="ver-footer">职场关系地图 v{{版本号}} · 虾评平台</div>
 </div>
+<script>
+(function(){
+  var btn=document.getElementById('exportBtn');
+  var menu=document.getElementById('exportMenu');
+  var toast=document.getElementById('exportToast');
+  var busy=false;
+
+  btn.addEventListener('click',function(e){
+    e.stopPropagation();
+    menu.classList.toggle('show');
+  });
+  document.addEventListener('click',function(){menu.classList.remove('show')});
+
+  function showToast(msg,ms){
+    toast.textContent=msg;toast.classList.add('show');
+    setTimeout(function(){toast.classList.remove('show')},ms||2000);
+  }
+
+  function dl(canvas,name){
+    var a=document.createElement('a');
+    a.download=name;a.href=canvas.toDataURL('image/png');
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+  }
+
+  function getModules(){
+    var c=document.querySelector('.container');
+    var sel=['.header','.xinfa-card','.sec-diagnosis','.sec-relations','.sec-power','.sec-leverage','.sec-strategy','.sec-checklist','.danger-card'];
+    var mods=[];
+    sel.forEach(function(s){
+      var el=c.querySelector(s);
+      if(el) mods.push({el:el,name:s.replace(/[\.\#]/g,'')});
+    });
+    return mods;
+  }
+
+  window.exportFull=function(){
+    if(busy)return;busy=true;menu.classList.remove('show');
+    showToast('正在生成全图…',3000);
+    var c=document.querySelector('.container');
+    html2canvas(c,{scale:2,useCORS:true,backgroundColor:'#FAFAF8'}).then(function(canvas){
+      dl(canvas,'职场关系地图_全图.png');showToast('✅ 全图已下载');busy=false;
+    }).catch(function(){showToast('❌ 导出失败');busy=false});
+  };
+
+  window.exportModules=function(){
+    if(busy)return;busy=true;menu.classList.remove('show');
+    var mods=getModules();
+    if(!mods.length){showToast('无模块可导出');busy=false;return;}
+    showToast('正在逐模块导出 '+mods.length+' 张…',5000);
+    var i=0;
+    function next(){
+      if(i>=mods.length){showToast('✅ '+mods.length+' 张模块图已下载');busy=false;return;}
+      var m=mods[i];
+      html2canvas(m.el,{scale:2,useCORS:true,backgroundColor:'#FAFAF8'}).then(function(canvas){
+        dl(canvas,'职场关系地图_'+m.name+'.png');
+        i++;next();
+      }).catch(function(){i++;next()});
+    }
+    next();
+  };
+})();
+</script>
 </body>
 </html>
